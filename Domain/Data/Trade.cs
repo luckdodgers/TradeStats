@@ -32,7 +32,7 @@ namespace TradeStats.Domain.Data
         public bool IsClosed { get; private set; }
      
         /// <returns>closeAmount residue</returns>
-        public decimal CloseTrade(decimal closeAmount)
+        public decimal SubstractCloseAmount(decimal closeAmount)
         {
             if (Residue >= closeAmount)
             {

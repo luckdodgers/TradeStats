@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TradeStats
+namespace TradeStats.ViewModel
 {
-    class TradeHandler
+    class MainWindowViewModel
     {
-
     }
 }
