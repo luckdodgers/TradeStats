@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using TradeStats.Domain.Data;
+using TradeStats.Models.Data;
 
 namespace TradeStats.Infastructure.Persistance
 {

@@ -1,32 +1,35 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Prism.Ioc;
+using Prism.Unity;
 using System.Windows;
 using TradeStats.Infastructure;
-using TradeStats.Infastructure.Persistance;
+using TradeStats.Views;
+using Unity;
 
 namespace TradeStats
 {
-    public partial class App : Application
+    public partial class App : PrismApplication
     {
-        private readonly ServiceProvider _serviceProvider;
+        private readonly IUnityContainer _container;
 
         public App()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.Configure();
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+            _container = new UnityContainer();
+            _container.Configure();
+
+            //var serviceCollection = new ServiceCollection();
+            //serviceCollection.Configure();
+            //_serviceProvider = serviceCollection.BuildServiceProvider();
         }
 
-        private void OnStartup(object sender, StartupEventArgs e)
+        protected override Window CreateShell()
         {
-            var mainWindow = _serviceProvider.GetService<MainWindow>();
-            mainWindow.Show();
+            return _container.Resolve<MainWindow>();
+        }
+
+        protected override void RegisterTypes(IContainerRegistry containerRegistry)
+        {
+            
         }
     }
 }

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TradeStats.Domain.Common;
+using TradeStats.Models.Common;
 
-namespace TradeStats.Domain.Data
+namespace TradeStats.Models.Data
 {
     class ClosedTrade
     {
-        public ClosedTrade (DateTime datetime, Currency buyCurrency, Currency sellCurrency,
+        public ClosedTrade(DateTime datetime, Currency buyCurrency, Currency sellCurrency,
             decimal openPrice, decimal closePrice, decimal amount, decimal roundFee)
         {
             Datetime = datetime;
@@ -28,7 +28,7 @@ namespace TradeStats.Domain.Data
         public decimal Amount { get; }
         public decimal RoundFee { get; }
 
-        public static ClosedTrade Create (Trade openTrade, Trade closeTrade)
+        public static ClosedTrade Create(Trade openTrade, Trade closeTrade)
         {
             return new ClosedTrade
                 (

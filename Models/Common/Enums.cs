@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TradeStats.Domain.Common
+namespace TradeStats.Models.Common
 {
     public enum TradeSide { Buy, Sell }
 

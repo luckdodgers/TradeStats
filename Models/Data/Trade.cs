@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TradeStats.Domain.Common;
+using TradeStats.Models.Common;
 
-namespace TradeStats.Domain.Data
+namespace TradeStats.Models.Data
 {
     class Trade
     {
@@ -30,7 +30,7 @@ namespace TradeStats.Domain.Data
         public decimal Fee { get; }
         public decimal Residue { get; private set; }
         public bool IsClosed { get; private set; }
-     
+
         /// <returns>closeAmount residue</returns>
         public decimal SubstractCloseAmount(decimal closeAmount)
         {
