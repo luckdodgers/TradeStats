@@ -1,13 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using TradeStats.Infastructure.Persistance;
-using TradeStats.Views;
+using TradeStats.ViewModel.MainWindow;
+using TradeStats.Views.Main;
 using Unity;
 
 namespace TradeStats.Infastructure
@@ -33,6 +30,9 @@ namespace TradeStats.Infastructure
 
             // Windows
             container.RegisterType<MainWindow>();
+
+            // Viewmodels
+            container.RegisterType<MainWindowViewModel>();
         }
 
         public static void Configure(this IServiceCollection services)

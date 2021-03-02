@@ -12,6 +12,5 @@ namespace TradeStats.ViewModel.MainWindow
     {
         private TradesMergeTabViewModel _tradesMergeTab = new TradesMergeTabViewModel();
         public TradesMergeTabViewModel TradesMergeTab => _tradesMergeTab;
-
     }
 }

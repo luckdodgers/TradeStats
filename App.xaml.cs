@@ -4,6 +4,7 @@ using Prism.Unity;
 using System.Windows;
 using TradeStats.Infastructure;
 using TradeStats.Views;
+using TradeStats.Views.Main;
 using Unity;
 
 namespace TradeStats
