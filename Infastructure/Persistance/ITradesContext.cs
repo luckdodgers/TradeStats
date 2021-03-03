@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TradeStats.Models.Data;
+using TradeStats.Models.Domain;
 
 namespace TradeStats.Infastructure.Persistance
 {

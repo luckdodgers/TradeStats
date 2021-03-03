@@ -4,7 +4,9 @@ using Serilog;
 using System;
 using TradeStats.Infastructure.Persistance;
 using TradeStats.ViewModel.MainWindow;
+using TradeStats.ViewModel.ManageAccounts;
 using TradeStats.Views.Main;
+using TradeStats.Views.ManageAccounts;
 using Unity;
 
 namespace TradeStats.Infastructure
@@ -30,9 +32,11 @@ namespace TradeStats.Infastructure
 
             // Windows
             container.RegisterType<MainWindow>();
+            container.RegisterType<ManageAccountsWindow>();
 
             // Viewmodels
             container.RegisterType<MainWindowViewModel>();
+            container.RegisterType<ManageAccountsViewModel>();
         }
 
         public static void Configure(this IServiceCollection services)

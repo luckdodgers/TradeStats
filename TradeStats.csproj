@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Infastructure\Mapping\" />
+    <Folder Include="Models\Settings\" />
   </ItemGroup>
 
 </Project>

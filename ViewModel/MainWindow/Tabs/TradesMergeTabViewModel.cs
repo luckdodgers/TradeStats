@@ -13,11 +13,9 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         {
             MergeCommand = new DelegateCommand(async () => await Merge(), CanMerge).ObservesProperty(() => IsMergeBtnEnabled);
             UncheckAllCommand = new DelegateCommand(async () => await UncheckAll());
-            TradeMergeItems = new ObservableCollection<TradeMergeItemDto>();
         }
 
-
-        public ObservableCollection<TradeMergeItemDto> TradeMergeItems { get; set; }
+        public ObservableCollection<TradeMergeItemDto> TradeMergeItems { get; set; } = new ObservableCollection<TradeMergeItemDto>();
 
         #region Commands
         public ICommand MergeCommand { get; private set; }

@@ -4,12 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TradeStats.Views.Main"
-        xmlns:prism="http://prismlibrary.com/"
+        xmlns:prism="http://prismlibrary.com/" xmlns:mainwindow="clr-namespace:TradeStats.ViewModel.MainWindow"
         prism:ViewModelLocator.AutoWireViewModel="True" 
         mc:Ignorable="d"
         Title="MainWindow" Height="550" Width="760">
     <Grid>
         <DockPanel>
+            <Menu DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="0,0,0,5">
+                <MenuItem Command="{Binding OpenManageAccountsWindowCommand}"  Header="Manage accounts" Height="22"/>
+                <MenuItem Header="Settings" Height="22" Margin="5,0,0,0"/>
+            </Menu>
             <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <TabControl x:Name="MwTopTabControl" BorderBrush="Transparent">
                     <TabItem x:Name="TradesManagmentTab" DataContext="{Binding TradesMergeTab}">
@@ -19,7 +23,8 @@
                         <TabItem.Content>
                             <DockPanel Margin="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" LastChildFill="False">
                                 <DockPanel.Dock>Left</DockPanel.Dock>
-                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TradeMergeItems}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AutoGenerateColumns="False">
+                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TradeMergeItems}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                          AutoGenerateColumns="False" EnableColumnVirtualization = "True" EnableRowVirtualization = "True">
                                     <DataGrid.Columns>
                                         <DataGridCheckBoxColumn></DataGridCheckBoxColumn>
                                         <DataGridTextColumn Width="90" Header="Date" Binding="{Binding Date}"></DataGridTextColumn>
@@ -63,7 +68,7 @@
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="Other option" FontSize="13" Margin="1,1,1,1"></TextBlock>
+                            <TextBlock Text="Closed trades" FontSize="13" Margin="1,1,1,1"></TextBlock>
                         </TabItem.Header>
                     </TabItem>
                 </TabControl>

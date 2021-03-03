@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TradeStats.Models.Common;
 
-namespace TradeStats.Models.Data
+namespace TradeStats.Models.Domain
 {
     class ClosedTrade
     {
