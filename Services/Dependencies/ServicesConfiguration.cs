@@ -2,12 +2,19 @@
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 using TradeStats.Infastructure.Persistance;
+using TradeStats.Services.Validations;
 using TradeStats.ViewModel.MainWindow;
 using TradeStats.ViewModel.ManageAccounts;
 using TradeStats.Views.Main;
 using TradeStats.Views.ManageAccounts;
 using Unity;
+using Unity.Injection;
+using Unity.Lifetime;
 
 namespace TradeStats.Infastructure
 {
@@ -58,6 +65,26 @@ namespace TradeStats.Infastructure
             });
 
             services.AddTransient(typeof(MainWindow));
+        }
+
+        private static List<Type> GetTypesAssignableFrom<T>(this Assembly assembly)
+        {
+            return assembly.GetTypesAssignableFrom(typeof(T));
+        }
+
+        private static List<Type> GetTypesAssignableFrom(this Assembly assembly, Type compareType)
+        {
+            List<Type> result = new List<Type>();
+
+            foreach (var type in assembly.DefinedTypes)
+            {
+                if (compareType.IsAssignableFrom(type) && compareType != type)
+                {
+                    result.Add(type);
+                }
+            }
+
+            return result;
         }
     }
 }

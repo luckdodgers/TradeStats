@@ -1,15 +1,14 @@
-﻿using Prism.Mvvm;
+﻿using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TradeStats.Services.Validations;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
-    class ManageAccountsViewModel : BindableBase
+    class ManageAccountsViewModel : BaseViewModel
     {
         public ObservableCollection<string> ExistingAccounts { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> EditAccountExchange { get; set; } = new ObservableCollection<string>();
@@ -18,9 +17,34 @@ namespace TradeStats.ViewModel.ManageAccounts
         #region Commands
         public ICommand SwitchAccountCommand { get; private set; }
         public ICommand EditAccountCommand { get; private set; }
-        public ICommand RemoveAccountCommand { get; private set; }
+        public ICommand DeleteAccountCommand { get; private set; }
         public ICommand SaveEditedAccountCommand { get; private set; }
         public ICommand AddNewAccountCommand { get; private set; }
+        #endregion
+
+        #region IsSaveEditedAccountBtnEnabled
+        private bool _isSaveEditedAccountBtnEnabled;
+        public bool IsSaveEditedAccountBtnEnabled
+        {
+            get => _isSaveEditedAccountBtnEnabled;
+            set => SetProperty(ref _isSaveEditedAccountBtnEnabled, value);
+        }
+        #endregion
+
+        private bool _isAddNewAccountBtnEnabled;
+        public bool IsAddNewAccountBtnEnabled
+        {
+            get => _isAddNewAccountBtnEnabled;
+            set => SetProperty(ref _isAddNewAccountBtnEnabled, value);
+        }
+
+        #region SelectedAccount
+        private string _selectedAccount;
+        public string SelectedAccount
+        {
+            get => _selectedAccount;
+            set => SetProperty(ref _selectedAccount, value);
+        }
         #endregion
 
         #region EditAccountName
@@ -32,23 +56,30 @@ namespace TradeStats.ViewModel.ManageAccounts
         }
         #endregion
 
-        #region EditAccountTraderFee
-        private decimal _editAccountTraderFee;
-        public decimal EditAccountTraderFee
+        #region SelectedEditAccountExchange
+        private string _selectedEditAccountExchange;
+        public string SelectedEditAccountExchange
         {
-            get => _editAccountTraderFee;
+            get => _selectedEditAccountExchange;
+            set => SetProperty(ref _selectedEditAccountExchange, value);
+        }
+        #endregion
+
+        #region EditAccountTraderFee
+        private string _editAccountTraderFeeString;
+        public string EditAccountTraderFeeString
+        {
+            get => _editAccountTraderFeeString;
             set
             {
-                if (value < 0 || value > 100)
-                    throw new ArgumentException("Trader fee cannot be negative or greater than 100");
-
-                SetProperty(ref _editAccountTraderFee, value);
+                ValidateProperty(value);
+                SetProperty(ref _editAccountTraderFeeString, value);
             }
         }
         #endregion
 
         #region NewFeeStartDate 
-        private DateTime _newFeeStartDate;
+        private DateTime _newFeeStartDate = DateTime.Now;
         public DateTime NewFeeStartDate
         {
             get => _newFeeStartDate;
@@ -75,18 +106,84 @@ namespace TradeStats.ViewModel.ManageAccounts
         #endregion
 
         #region NewAccountTraderFee
-        private decimal _newAccountTraderFee;
-        public decimal NewAccountTraderFee
+        private string _newAccountTraderFeeString;
+
+        public string NewAccountTraderFeeString
         {
-            get => _newAccountTraderFee;
+            get => _newAccountTraderFeeString;
             set
             {
-                if (value < 0 || value > 100)
-                    throw new ArgumentException("Trader fee cannot be negative or greater than 100");
-
-                SetProperty(ref _newAccountTraderFee, value);
+                ValidateProperty(value);
+                SetProperty(ref _newAccountTraderFeeString, value);
             }
         }
         #endregion
+
+        #region Validations
+        private readonly PositivePercentValidation _traderFeeValidation = new();
+        private readonly NotEmptyStringValidation _accountNameValidation = new();
+        #endregion
+
+        public ManageAccountsViewModel()
+        {
+            AddValidators(nameof(EditAccountName), _accountNameValidation);
+            AddValidators(nameof(EditAccountTraderFeeString), _traderFeeValidation);
+
+            AddValidators(nameof(NewAccountName), _accountNameValidation);
+            AddValidators(nameof(NewAccountTraderFeeString), _traderFeeValidation);
+
+            SwitchAccountCommand = new DelegateCommand(async () => await SwitchAccount());
+            EditAccountCommand = new DelegateCommand(async () => await EditAccount());
+            DeleteAccountCommand = new DelegateCommand(async () => await DeleteAccount());
+            SaveEditedAccountCommand = new DelegateCommand(async () => await SaveEditedAccount(), CanSaveEditedAccount).ObservesProperty(() => IsSaveEditedAccountBtnEnabled);
+            AddNewAccountCommand = new DelegateCommand(async () => await AddNewAccount(), CanAddNewAccount).ObservesProperty(() => IsAddNewAccountBtnEnabled);
+        }
+
+        private bool CanSaveEditedAccount()
+        {
+            List<bool> checkResults = new()
+            {
+                PropertyHasErrors(nameof(EditAccountName)),
+                PropertyHasErrors(nameof(EditAccountTraderFeeString)),
+            };
+
+            return checkResults.TrueForAll(cr => cr);
+        }
+
+        private bool CanAddNewAccount()
+        {
+            List<bool> checkResults = new()
+            {
+                PropertyHasErrors(nameof(NewAccountName)),
+                PropertyHasErrors(nameof(NewAccountTraderFeeString))
+            };
+
+            return checkResults.TrueForAll(cr => cr);
+        }
+
+        private async Task SaveEditedAccount()
+        {
+
+        }
+
+        private async Task DeleteAccount()
+        {
+            
+        }
+
+        private async Task EditAccount()
+        {
+
+        }
+
+        private async Task SwitchAccount()
+        {
+            
+        } 
+
+        private async Task AddNewAccount()
+        {
+
+        }
     }
 }

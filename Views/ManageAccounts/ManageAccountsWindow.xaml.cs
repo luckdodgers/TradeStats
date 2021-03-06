@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using TradeStats.ViewModel.ManageAccounts;
 using Unity;
@@ -26,6 +27,11 @@ namespace TradeStats.Views.ManageAccounts
             {
                 MessageBox.Show(e.Error.ErrorContent.ToString());
             }
+        }
+
+        private void SetupNewFeeStartDate()
+        {
+            NewFeeStartDate.DisplayDateEnd = DateTime.Now;
         }
     }
 }
