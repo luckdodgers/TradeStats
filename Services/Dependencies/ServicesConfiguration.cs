@@ -31,10 +31,10 @@ namespace TradeStats.Infastructure
             container.RegisterInstance(typeof(ILogger), logger);
 
             // Settings
-            container.RegisterSingleton<ISettingsManager, SettingsManager>();
+            container.RegisterSingleton<ISettingsProvider, JsonSettingsProvider>();
 
             // DbContext
-            container.RegisterSingleton<IDbContextFactory<TradesContext>, TradesContextFactory>(new InjectionConstructor(container.Resolve<ISettingsManager>()
+            container.RegisterSingleton<IDbContextFactory<TradesContext>, TradesContextFactory>(new InjectionConstructor(container.Resolve<ISettingsProvider>()
                 .LoadAccounts().CurrentAccount) ?? null);
             container.RegisterFactory<ITradesContext>((x) => x.Resolve<IDbContextFactory<TradesContext>>().CreateDbContext());
             //container.RegisterInstance(optionsBuilder.Options);

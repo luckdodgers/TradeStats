@@ -4,15 +4,15 @@ using System.Text;
 
 namespace TradeStats.Models.Common
 {
-    public enum TradeSide { Buy, Sell }
+    public enum TradeSide : short { Buy, Sell }
 
-    public enum RawCurrencies
+    public enum RawCurrencies : short
     {
         USDT,
         XBT
     }
 
-    public enum Currency
+    public enum Currency : short
     {
         USD,
         BTC,

@@ -3,7 +3,7 @@ using TradeStats.Models.Settings;
 
 namespace TradeStats.Services.Interfaces
 {
-    interface ISettingsManager
+    interface ISettingsProvider
     {
         Task WriteAccountsDataAsync(AccountsData data);
         Task<AccountsData> LoadAccountsDataAsync();

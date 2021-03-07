@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TradeStats.Services.Interfaces;
 using TradeStats.Services.Validations;
+using TradeStats.Models.Settings;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
@@ -31,12 +33,14 @@ namespace TradeStats.ViewModel.ManageAccounts
         }
         #endregion
 
+        #region IsAddNewAccountBtnEnabled
         private bool _isAddNewAccountBtnEnabled;
         public bool IsAddNewAccountBtnEnabled
         {
             get => _isAddNewAccountBtnEnabled;
             set => SetProperty(ref _isAddNewAccountBtnEnabled, value);
         }
+        #endregion
 
         #region SelectedAccount
         private string _selectedAccount;
@@ -52,13 +56,18 @@ namespace TradeStats.ViewModel.ManageAccounts
         public string EditAccountName
         {
             get => _editAccountName;
-            set => SetProperty(ref _editAccountName, value);
+            set
+            {
+                ValidateProperty(value);
+                CanAddNewAccount();
+                SetProperty(ref _editAccountName, value);
+            }
         }
         #endregion
 
         #region SelectedEditAccountExchange
-        private string _selectedEditAccountExchange;
-        public string SelectedEditAccountExchange
+        private Exchanges _selectedEditAccountExchange;
+        public Exchanges SelectedEditAccountExchange
         {
             get => _selectedEditAccountExchange;
             set => SetProperty(ref _selectedEditAccountExchange, value);
@@ -73,6 +82,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
+                CanAddNewAccount();
                 SetProperty(ref _editAccountTraderFeeString, value);
             }
         }
@@ -97,16 +107,30 @@ namespace TradeStats.ViewModel.ManageAccounts
         #endregion
 
         #region NewAccountName
-        private string _newAccountName;
+        private string _newAccountName = string.Empty;
         public string NewAccountName
         {
             get => _newAccountName;
-            set => SetProperty(ref _newAccountName, value);
+            set
+            {
+                ValidateProperty(value);
+                SetProperty(ref _newAccountName, value);
+                CanAddNewAccount();
+            }
+        }
+        #endregion
+
+        #region SelectedNewAccountExchange
+        private Exchanges _selectedNewAccountExchange;
+        public Exchanges SelectedNewAccountExchange
+        {
+            get => _selectedNewAccountExchange;
+            set => SetProperty(ref _selectedNewAccountExchange, value);
         }
         #endregion
 
         #region NewAccountTraderFee
-        private string _newAccountTraderFeeString;
+        private string _newAccountTraderFeeString = string.Empty;
 
         public string NewAccountTraderFeeString
         {
@@ -114,6 +138,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
+                CanAddNewAccount();
                 SetProperty(ref _newAccountTraderFeeString, value);
             }
         }
@@ -124,19 +149,32 @@ namespace TradeStats.ViewModel.ManageAccounts
         private readonly NotEmptyStringValidation _accountNameValidation = new();
         #endregion
 
-        public ManageAccountsViewModel()
+        private readonly ISettingsProvider _settings;
+
+        public ManageAccountsViewModel(ISettingsProvider settings)
+        {
+            _settings = settings;
+
+            InitValidators();
+            InitCommands();
+        }
+
+        private void InitValidators()
         {
             AddValidators(nameof(EditAccountName), _accountNameValidation);
             AddValidators(nameof(EditAccountTraderFeeString), _traderFeeValidation);
 
             AddValidators(nameof(NewAccountName), _accountNameValidation);
             AddValidators(nameof(NewAccountTraderFeeString), _traderFeeValidation);
+        }
 
+        private void InitCommands()
+        {
             SwitchAccountCommand = new DelegateCommand(async () => await SwitchAccount());
             EditAccountCommand = new DelegateCommand(async () => await EditAccount());
             DeleteAccountCommand = new DelegateCommand(async () => await DeleteAccount());
-            SaveEditedAccountCommand = new DelegateCommand(async () => await SaveEditedAccount(), CanSaveEditedAccount).ObservesProperty(() => IsSaveEditedAccountBtnEnabled);
-            AddNewAccountCommand = new DelegateCommand(async () => await AddNewAccount(), CanAddNewAccount).ObservesProperty(() => IsAddNewAccountBtnEnabled);
+            SaveEditedAccountCommand = new DelegateCommand(async () => await SaveEditedAccount()).ObservesCanExecute(() => IsSaveEditedAccountBtnEnabled);
+            AddNewAccountCommand = new DelegateCommand(async () => await AddNewAccount()).ObservesCanExecute(() => IsAddNewAccountBtnEnabled);
         }
 
         private bool CanSaveEditedAccount()
@@ -144,7 +182,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             List<bool> checkResults = new()
             {
                 PropertyHasErrors(nameof(EditAccountName)),
-                PropertyHasErrors(nameof(EditAccountTraderFeeString)),
+                PropertyHasErrors(nameof(EditAccountTraderFeeString)),              
             };
 
             return checkResults.TrueForAll(cr => cr);
@@ -157,6 +195,8 @@ namespace TradeStats.ViewModel.ManageAccounts
                 PropertyHasErrors(nameof(NewAccountName)),
                 PropertyHasErrors(nameof(NewAccountTraderFeeString))
             };
+
+            IsAddNewAccountBtnEnabled = checkResults.TrueForAll(cr => cr == false);
 
             return checkResults.TrueForAll(cr => cr);
         }
@@ -183,7 +223,23 @@ namespace TradeStats.ViewModel.ManageAccounts
 
         private async Task AddNewAccount()
         {
+            var accountsData = await _settings.LoadAccountsDataAsync();
+            if (accountsData.IsAccountAlreadyExist(NewAccountName))
+            {
+                System.Windows.MessageBox.Show("Account with this name already exists. Please, specify another name.", "Error");
+                return;
+            }           
 
+            var feeData = new FeeData(DateTime.MinValue, decimal.Parse(NewAccountTraderFeeString));
+
+            accountsData.Accounts.Add(new AccountJson
+                (
+                    NewAccountName,
+                    SelectedNewAccountExchange,
+                    new List<FeeData>() { feeData })
+                );
+
+            await _settings.WriteAccountsDataAsync(accountsData);
         }
     }
 }
