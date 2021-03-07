@@ -5,6 +5,7 @@ namespace TradeStats.Models.Settings
 {
     class AccountsData
     {
+        public string CurrentAccount { get; set; }
         public List<AccountJson> Accounts { get; set; }
     }
 

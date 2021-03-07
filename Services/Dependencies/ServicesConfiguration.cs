@@ -1,20 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 using TradeStats.Infastructure.Persistance;
-using TradeStats.Services.Validations;
+using TradeStats.Services;
+using TradeStats.Services.Interfaces;
+using TradeStats.Services.Persistance;
 using TradeStats.ViewModel.MainWindow;
 using TradeStats.ViewModel.ManageAccounts;
 using TradeStats.Views.Main;
 using TradeStats.Views.ManageAccounts;
 using Unity;
 using Unity.Injection;
-using Unity.Lifetime;
 
 namespace TradeStats.Infastructure
 {
@@ -30,12 +30,14 @@ namespace TradeStats.Infastructure
 
             container.RegisterInstance(typeof(ILogger), logger);
 
+            // Settings
+            container.RegisterSingleton<ISettingsManager, SettingsManager>();
+
             // DbContext
-            var optionsBuilder = new DbContextOptionsBuilder<TradesContext>();
-            optionsBuilder.UseSqlite("Data Source=trades.db");
-            optionsBuilder.UseLazyLoadingProxies();
-            container.RegisterInstance(optionsBuilder.Options);
-            container.RegisterType(typeof(ITradesContext), typeof(TradesContext));
+            container.RegisterSingleton<IDbContextFactory<TradesContext>, TradesContextFactory>(new InjectionConstructor(container.Resolve<ISettingsManager>()
+                .LoadAccounts().CurrentAccount) ?? null);
+            container.RegisterFactory<ITradesContext>((x) => x.Resolve<IDbContextFactory<TradesContext>>().CreateDbContext());
+            //container.RegisterInstance(optionsBuilder.Options);
 
             // Windows
             container.RegisterType<MainWindow>();

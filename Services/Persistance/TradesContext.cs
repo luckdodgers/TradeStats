@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TradeStats.Models.Domain;
+using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Infastructure.Persistance
 {
@@ -11,8 +9,16 @@ namespace TradeStats.Infastructure.Persistance
         public DbSet<Trade> Trades { get; set; }
         public DbSet<ClosedTrade> ClosedTrades { get; set; }
 
+        public TradesContext(DbContextOptions<TradesContext> options) : base(options)
+        {
+            
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (Database.EnsureCreated())
+                Database.Migrate();
+
             base.OnConfiguring(optionsBuilder);
         }
     }
