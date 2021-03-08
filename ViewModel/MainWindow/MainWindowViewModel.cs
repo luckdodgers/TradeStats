@@ -1,12 +1,7 @@
 ﻿using Prism.Commands;
 using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
 using System.Windows.Input;
 using TradeStats.Extensions;
-using TradeStats.Models.Domain;
 using TradeStats.ViewModel.MainWindow.Tabs;
 using TradeStats.Views.ManageAccounts;
 using Unity;

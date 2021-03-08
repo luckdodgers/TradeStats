@@ -207,7 +207,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             NewAccountName = string.Empty;
             NewAccountTraderFeeString = string.Empty;
 
-            var accounts = _context.Accounts.Select(a => a.AccountName);
+            var accounts = _context.Accounts.AsNoTracking().Select(a => a.AccountName);
             ExistingAccounts.AddRange(accounts);
         }
 
@@ -295,7 +295,7 @@ namespace TradeStats.ViewModel.ManageAccounts
 
         private async Task SwitchAccount()
         {
-            var accounts = await _context.Accounts.ToListAsync();
+            var accounts = _context.Accounts.ToList();
 
             accounts.ForEach(a => a.SetInactive());
             var switchedAccount = accounts.First(a => a.AccountName == SelectedAccount);

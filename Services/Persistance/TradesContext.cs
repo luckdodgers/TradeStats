@@ -39,7 +39,8 @@ namespace TradeStats.Infastructure.Persistance
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetAssembly(typeof(App)));
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.SqliteDatetimeConverting();
+            modelBuilder.UseValueConverterForType(typeof(DateTime), new DateTimeToBinaryConverter());
+            modelBuilder.UseValueConverterForType(typeof(decimal), new NumberToStringConverter<decimal>());
         }
     }
 }
