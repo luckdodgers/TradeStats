@@ -5,29 +5,33 @@ using TradeStats.Models.Common;
 
 namespace TradeStats.Models.Domain
 {
-    class Trade
+    public class Trade
     {
-        public Trade(DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
+        protected Trade() { }
+
+        public Trade(int accountId, DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
             decimal price, decimal amount, decimal fee)
         {
+            AccountId = accountId;
             Datetime = datetime;
             Side = type;
             FirstCurrency = firstCurrency;
             SecondCurrency = secondCurrency;
             Price = price;
             Amount = amount;
-            Residue = amount; // Check for correctness while getting from DB
+            Residue = amount; // NP: Check for correctness while getting from DB
             Fee = fee;
         }
 
         public long Id { get; }
+        public int AccountId { get; }
         public DateTime Datetime { get; }
         public TradeSide Side { get; }
         public Currency FirstCurrency { get; }
         public Currency SecondCurrency { get; }
         public decimal Price { get; }
         public decimal Amount { get; }
-        public decimal Fee { get; }
+        public decimal Fee { get; private set; }
         public decimal Residue { get; private set; }
         public bool IsClosed { get; private set; }
 
@@ -55,5 +59,7 @@ namespace TradeStats.Models.Domain
             if (newResidue == 0)
                 IsClosed = true;
         }
+
+        public void SetFee(decimal newFee) => Fee = newFee;
     }
 }

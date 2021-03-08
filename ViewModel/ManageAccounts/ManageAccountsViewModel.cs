@@ -1,12 +1,17 @@
-﻿using Prism.Commands;
+﻿using Microsoft.EntityFrameworkCore;
+using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
+using TradeStats.Models.Domain;
+using TradeStats.Models.Settings;
 using TradeStats.Services.Interfaces;
 using TradeStats.Services.Validations;
-using TradeStats.Models.Settings;
+using TradeStats.Extensions;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
@@ -59,7 +64,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CanAddNewAccount();
+                CheckIfCanSaveEditedAccount();
                 SetProperty(ref _editAccountName, value);
             }
         }
@@ -82,7 +87,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CanAddNewAccount();
+                CheckIfCanSaveEditedAccount();
                 SetProperty(ref _editAccountTraderFeeString, value);
             }
         }
@@ -97,12 +102,25 @@ namespace TradeStats.ViewModel.ManageAccounts
         }
         #endregion
 
+        #region IsNewFeeStartDatepickerActive
+        private bool _isNewFeeStartDatepickerActive = true;
+        public bool IsNewFeeStartDatepickerActive
+        {
+            get => _isNewFeeStartDatepickerActive;
+            set => SetProperty(ref _isNewFeeStartDatepickerActive, value);
+        }
+        #endregion
+
         #region IsNewFeeStartsFromNextTrade
         private bool _isNewFeeStartsFromNextTrade;
         public bool IsNewFeeStartsFromNextTrade
         {
             get => _isNewFeeStartsFromNextTrade;
-            set => SetProperty(ref _isNewFeeStartsFromNextTrade, value);
+            set
+            {
+                IsNewFeeStartDatepickerActive = !value;
+                SetProperty(ref _isNewFeeStartsFromNextTrade, value);
+            }
         }
         #endregion
 
@@ -115,7 +133,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             {
                 ValidateProperty(value);
                 SetProperty(ref _newAccountName, value);
-                CanAddNewAccount();
+                CheckIfCanAddAccount();
             }
         }
         #endregion
@@ -138,7 +156,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CanAddNewAccount();
+                CheckIfCanAddAccount();
                 SetProperty(ref _newAccountTraderFeeString, value);
             }
         }
@@ -149,14 +167,17 @@ namespace TradeStats.ViewModel.ManageAccounts
         private readonly NotEmptyStringValidation _accountNameValidation = new();
         #endregion
 
-        private readonly ISettingsProvider _settings;
+        private readonly ITradesContext _context;
+        private readonly IUpdateCachedData<Account> _currentAccount;
 
-        public ManageAccountsViewModel(ISettingsProvider settings)
+        public ManageAccountsViewModel(ITradesContext context, IUpdateCachedData<Account> currentAccount)
         {
-            _settings = settings;
+            _context = context;
+            _currentAccount = currentAccount;
 
             InitValidators();
             InitCommands();
+            InitBindings();
         }
 
         private void InitValidators()
@@ -177,7 +198,20 @@ namespace TradeStats.ViewModel.ManageAccounts
             AddNewAccountCommand = new DelegateCommand(async () => await AddNewAccount()).ObservesCanExecute(() => IsAddNewAccountBtnEnabled);
         }
 
-        private bool CanSaveEditedAccount()
+        // Raise at start to force fields validation
+        private void InitBindings()
+        {
+            EditAccountName = string.Empty;
+            EditAccountTraderFeeString = string.Empty;
+
+            NewAccountName = string.Empty;
+            NewAccountTraderFeeString = string.Empty;
+
+            var accounts = _context.Accounts.Select(a => a.AccountName);
+            ExistingAccounts.AddRange(accounts);
+        }
+
+        private void CheckIfCanSaveEditedAccount()
         {
             List<bool> checkResults = new()
             {
@@ -185,10 +219,10 @@ namespace TradeStats.ViewModel.ManageAccounts
                 PropertyHasErrors(nameof(EditAccountTraderFeeString)),              
             };
 
-            return checkResults.TrueForAll(cr => cr);
+            IsSaveEditedAccountBtnEnabled = checkResults.TrueForAll(cr => cr == false);
         }
 
-        private bool CanAddNewAccount()
+        private void CheckIfCanAddAccount()
         {
             List<bool> checkResults = new()
             {
@@ -197,49 +231,95 @@ namespace TradeStats.ViewModel.ManageAccounts
             };
 
             IsAddNewAccountBtnEnabled = checkResults.TrueForAll(cr => cr == false);
-
-            return checkResults.TrueForAll(cr => cr);
         }
 
         private async Task SaveEditedAccount()
         {
+            var account = await _context.Accounts.FirstAsync(a => a.AccountName == SelectedAccount);
 
+            account.RenameAccount(EditAccountName);
+            account.SwitchExchange(SelectedEditAccountExchange);
+            account.ChangeFee(decimal.Parse(EditAccountTraderFeeString));
+
+            if (!IsNewFeeStartsFromNextTrade)
+            {
+                var test = await _context.Trades
+                    .Where(t => t.AccountId == account.Id && t.Datetime >= NewFeeStartDate)
+                    .ToListAsync();
+
+                test.ForEach(t => t.SetFee(account.Fee));
+            }
+                
+            await _context.SaveChangesAsync();
+
+            int index = ExistingAccounts.IndexOf(SelectedAccount);
+            ExistingAccounts.RemoveAt(index);
+            ExistingAccounts.Insert(index, EditAccountName);
         }
 
         private async Task DeleteAccount()
         {
-            
+            var answer = MessageBox.Show("Account and all it's records will be permanently removed from the database. Are you sure?",
+                "Delete account?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (answer == MessageBoxResult.Yes)
+            {
+                var accountToDelete = await _context.Accounts.FirstAsync(a => a.AccountName == SelectedAccount);
+
+                ExistingAccounts.Remove(accountToDelete.AccountName);
+                EditAccountName = string.Empty;
+                EditAccountTraderFeeString = string.Empty;
+
+                if (((ICachedData<Account>)_currentAccount).CurrentAccount?.Id == accountToDelete.Id)
+                    _currentAccount.UpdateCurrentAccount(null);
+
+                var tradesToDelete = await _context.Trades.Where(t => t.AccountId == accountToDelete.Id).ToListAsync();
+                var closedTradesToDelete = await _context.ClosedTrades.Where(ct => ct.AccountId == accountToDelete.Id).ToListAsync();
+
+                _context.Trades.RemoveRange(tradesToDelete);
+                _context.ClosedTrades.RemoveRange(closedTradesToDelete);
+                _context.Accounts.Remove(accountToDelete);
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         private async Task EditAccount()
         {
+            var account = await _context.Accounts.AsNoTracking().FirstAsync(a => a.AccountName == SelectedAccount);
 
+            EditAccountName = account.AccountName;
+            SelectedEditAccountExchange = account.Exchange;
+            EditAccountTraderFeeString = account.Fee.ToString();
         }
 
         private async Task SwitchAccount()
         {
-            
+            var accounts = await _context.Accounts.ToListAsync();
+
+            accounts.ForEach(a => a.SetInactive());
+            var switchedAccount = accounts.First(a => a.AccountName == SelectedAccount);
+            switchedAccount.SetActive();
+            _currentAccount.UpdateCurrentAccount(switchedAccount);
+
+            await _context.SaveChangesAsync();
         } 
 
         private async Task AddNewAccount()
-        {
-            var accountsData = await _settings.LoadAccountsDataAsync();
-            if (accountsData.IsAccountAlreadyExist(NewAccountName))
+        {          
+            if (await _context.Accounts.AsNoTracking().AnyAsync(a => a.AccountName == NewAccountName))
             {
-                System.Windows.MessageBox.Show("Account with this name already exists. Please, specify another name.", "Error");
+                MessageBox.Show("Account with this name already exists. Please, specify another name.", "Error");
                 return;
-            }           
+            }
 
-            var feeData = new FeeData(DateTime.MinValue, decimal.Parse(NewAccountTraderFeeString));
+            await _context.Accounts.AddAsync(new Account(NewAccountName, SelectedNewAccountExchange, decimal.Parse(NewAccountTraderFeeString)));
+            await _context.SaveChangesAsync();
 
-            accountsData.Accounts.Add(new AccountJson
-                (
-                    NewAccountName,
-                    SelectedNewAccountExchange,
-                    new List<FeeData>() { feeData })
-                );
+            ExistingAccounts.Add(NewAccountName);
 
-            await _settings.WriteAccountsDataAsync(accountsData);
+            NewAccountName = string.Empty;
+            NewAccountTraderFeeString = string.Empty;
         }
     }
 }

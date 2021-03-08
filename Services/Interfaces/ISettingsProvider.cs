@@ -7,6 +7,6 @@ namespace TradeStats.Services.Interfaces
     {
         Task WriteAccountsDataAsync(AccountsData data);
         Task<AccountsData> LoadAccountsDataAsync();
-        AccountsData LoadAccounts();
+        AccountsData LoadAccountsData();
     }
 }

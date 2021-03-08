@@ -37,8 +37,6 @@ namespace TradeStats.ViewModel.MainWindow
                 window.Activate();
 
             else new ManageAccountsWindow(_container).ShowDialog();
-        }
-
-        
+        }  
     }
 }

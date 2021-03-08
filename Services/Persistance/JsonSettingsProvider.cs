@@ -35,7 +35,7 @@ namespace TradeStats.Services.Persistance
                 return await JsonSerializer.DeserializeAsync<AccountsData>(fs);
         }
 
-        public AccountsData LoadAccounts()
+        public AccountsData LoadAccountsData()
         {
             if (_accountsData != null)
                 return _accountsData;

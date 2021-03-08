@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using TradeStats.Infastructure.Persistance;
-using TradeStats.Services;
+using TradeStats.Models.Domain;
+using TradeStats.Services.Cache;
 using TradeStats.Services.Interfaces;
 using TradeStats.Services.Persistance;
 using TradeStats.ViewModel.MainWindow;
@@ -14,7 +14,6 @@ using TradeStats.ViewModel.ManageAccounts;
 using TradeStats.Views.Main;
 using TradeStats.Views.ManageAccounts;
 using Unity;
-using Unity.Injection;
 
 namespace TradeStats.Infastructure
 {
@@ -34,10 +33,11 @@ namespace TradeStats.Infastructure
             container.RegisterSingleton<ISettingsProvider, JsonSettingsProvider>();
 
             // DbContext
-            container.RegisterSingleton<IDbContextFactory<TradesContext>, TradesContextFactory>(new InjectionConstructor(container.Resolve<ISettingsProvider>()
-                .LoadAccounts().CurrentAccount) ?? null);
-            container.RegisterFactory<ITradesContext>((x) => x.Resolve<IDbContextFactory<TradesContext>>().CreateDbContext());
+            //var optionsBuilder = new DbContextOptionsBuilder<TradesContext>();
+            //optionsBuilder.UseSqlite(@"Data Source=Trades.db");
+            //optionsBuilder.UseLazyLoadingProxies();
             //container.RegisterInstance(optionsBuilder.Options);
+            container.RegisterType<ITradesContext, TradesContext>();
 
             // Windows
             container.RegisterType<MainWindow>();
@@ -46,6 +46,11 @@ namespace TradeStats.Infastructure
             // Viewmodels
             container.RegisterType<MainWindowViewModel>();
             container.RegisterType<ManageAccountsViewModel>();
+
+            // Cache
+            container.RegisterSingleton<CachedData>();
+            container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CachedData>());
+            container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CachedData>());
         }
 
         public static void Configure(this IServiceCollection services)

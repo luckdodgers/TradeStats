@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TradeStats.Infastructure.Persistance;
+using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Services.Persistance
 {
-    class TradesContextFactory : IDbContextFactory<TradesContext>
+    class TradesContextFactory : IContextFactory<ITradesContext>
     {
         private string connectionString;
 
@@ -12,7 +13,7 @@ namespace TradeStats.Services.Persistance
             this.connectionString = connectionString;
         }
 
-        public TradesContext CreateDbContext()
+        public ITradesContext CreateDbContext()
         {
             if (connectionString == null)
                 return null;

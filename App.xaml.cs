@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Prism.Ioc;
 using Prism.Unity;
-using System.ComponentModel;
 using System.Windows;
 using TradeStats.Infastructure;
-using TradeStats.Services.Validations;
-using TradeStats.Views;
+using TradeStats.Services.Interfaces;
 using TradeStats.Views.Main;
 using Unity;
 
@@ -19,6 +18,9 @@ namespace TradeStats
         {
             _container = new UnityContainer();
             _container.Configure();
+
+            var context = _container.Resolve<ITradesContext>();
+            ((DbContext)context).Database.Migrate();
         }
 
         protected override Window CreateShell()

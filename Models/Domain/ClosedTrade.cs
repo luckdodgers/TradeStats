@@ -5,11 +5,14 @@ using TradeStats.Models.Common;
 
 namespace TradeStats.Models.Domain
 {
-    class ClosedTrade
+    public class ClosedTrade
     {
-        public ClosedTrade(DateTime datetime, Currency buyCurrency, Currency sellCurrency,
+        protected ClosedTrade() { }
+
+        public ClosedTrade(int accountId, DateTime datetime, Currency buyCurrency, Currency sellCurrency,
             decimal openPrice, decimal closePrice, decimal amount, decimal roundFee)
         {
+            AccountId = accountId;
             Datetime = datetime;
             BuyCurrency = buyCurrency;
             SellCurrency = sellCurrency;
@@ -20,6 +23,7 @@ namespace TradeStats.Models.Domain
         }
 
         public long Id { get; }
+        public int AccountId { get; }
         public DateTime Datetime { get; }
         public Currency BuyCurrency { get; }
         public Currency SellCurrency { get; }
@@ -32,6 +36,7 @@ namespace TradeStats.Models.Domain
         {
             return new ClosedTrade
                 (
+                    accountId: closeTrade.AccountId,
                     datetime: closeTrade.Datetime,
                     buyCurrency: closeTrade.SecondCurrency,
                     sellCurrency: closeTrade.FirstCurrency,
