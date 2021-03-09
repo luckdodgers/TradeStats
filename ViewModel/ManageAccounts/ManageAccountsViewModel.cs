@@ -295,7 +295,7 @@ namespace TradeStats.ViewModel.ManageAccounts
 
         private async Task SwitchAccount()
         {
-            var accounts = _context.Accounts.ToList();
+            var accounts = await _context.Accounts.ToListAsync();
 
             accounts.ForEach(a => a.SetInactive());
             var switchedAccount = accounts.First(a => a.AccountName == SelectedAccount);
