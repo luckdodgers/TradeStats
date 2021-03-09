@@ -33,10 +33,6 @@ namespace TradeStats.Infastructure
             container.RegisterSingleton<ISettingsProvider, JsonSettingsProvider>();
 
             // DbContext
-            //var optionsBuilder = new DbContextOptionsBuilder<TradesContext>();
-            //optionsBuilder.UseSqlite(@"Data Source=Trades.db");
-            //optionsBuilder.UseLazyLoadingProxies();
-            //container.RegisterInstance(optionsBuilder.Options);
             container.RegisterType<ITradesContext, TradesContext>();
 
             // Windows
@@ -51,27 +47,6 @@ namespace TradeStats.Infastructure
             container.RegisterSingleton<CachedData>();
             container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CachedData>());
             container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CachedData>());
-        }
-
-        public static void Configure(this IServiceCollection services)
-        {
-            services.AddLogging(builder =>
-            {
-                var logger = new LoggerConfiguration()
-                    .MinimumLevel.Verbose()
-                    .WriteTo.File($"log-{DateTime.Now}.txt")
-                    .CreateLogger();
-
-                builder.AddSerilog(logger);
-            });
-
-            services.AddDbContext<TradesContext>(options =>
-            {
-                options.UseSqlite("Data Source=trades.db");
-                options.UseLazyLoadingProxies();
-            });
-
-            services.AddTransient(typeof(MainWindow));
         }
 
         private static List<Type> GetTypesAssignableFrom<T>(this Assembly assembly)

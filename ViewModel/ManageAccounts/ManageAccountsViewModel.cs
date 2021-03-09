@@ -29,6 +29,33 @@ namespace TradeStats.ViewModel.ManageAccounts
         public ICommand AddNewAccountCommand { get; private set; }
         #endregion
 
+        #region IsSwitchAccountBtnEnabled
+        private bool _isSwitchAccountBtnEnabled;
+        public bool IsSwitchAccountBtnEnabled
+        {
+            get => _isSwitchAccountBtnEnabled;
+            set => SetProperty(ref _isSwitchAccountBtnEnabled, value);
+        }
+        #endregion
+
+        #region IsEditAccountBtnEnabled
+        private bool _isEditAccountBtnEnabled;
+        public bool IsEditAccountBtnEnabled
+        {
+            get => _isEditAccountBtnEnabled;
+            set => SetProperty(ref _isEditAccountBtnEnabled, value);
+        }
+        #endregion
+
+        #region IsDeleteAccountBtnEnabled
+        private bool _isDeleteAccountBtnEnabled;
+        public bool IsDeleteAccountBtnEnabled
+        {
+            get => _isDeleteAccountBtnEnabled;
+            set => SetProperty(ref _isDeleteAccountBtnEnabled, value);
+        }
+        #endregion
+
         #region IsSaveEditedAccountBtnEnabled
         private bool _isSaveEditedAccountBtnEnabled;
         public bool IsSaveEditedAccountBtnEnabled
@@ -52,7 +79,12 @@ namespace TradeStats.ViewModel.ManageAccounts
         public string SelectedAccount
         {
             get => _selectedAccount;
-            set => SetProperty(ref _selectedAccount, value);
+            set
+            {
+                ValidateProperty(value);
+                SetProperty(ref _selectedAccount, value);
+                CheckIfCurrentAccountSelected();
+            }
         }
         #endregion
 
@@ -64,8 +96,8 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CheckIfCanSaveEditedAccount();
                 SetProperty(ref _editAccountName, value);
+                CheckIfCanSaveEditedAccount();
             }
         }
         #endregion
@@ -87,8 +119,8 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CheckIfCanSaveEditedAccount();
                 SetProperty(ref _editAccountTraderFeeString, value);
+                CheckIfCanSaveEditedAccount();
             }
         }
         #endregion
@@ -156,8 +188,8 @@ namespace TradeStats.ViewModel.ManageAccounts
             set
             {
                 ValidateProperty(value);
-                CheckIfCanAddAccount();
                 SetProperty(ref _newAccountTraderFeeString, value);
+                CheckIfCanAddAccount();
             }
         }
         #endregion
@@ -168,12 +200,12 @@ namespace TradeStats.ViewModel.ManageAccounts
         #endregion
 
         private readonly ITradesContext _context;
-        private readonly IUpdateCachedData<Account> _currentAccount;
+        private readonly IUpdateCachedData<Account> _currentCachedAccount;
 
-        public ManageAccountsViewModel(ITradesContext context, IUpdateCachedData<Account> currentAccount)
+        public ManageAccountsViewModel(ITradesContext context, IUpdateCachedData<Account> currentCachedAccount)
         {
             _context = context;
-            _currentAccount = currentAccount;
+            _currentCachedAccount = currentCachedAccount;
 
             InitValidators();
             InitCommands();
@@ -182,6 +214,8 @@ namespace TradeStats.ViewModel.ManageAccounts
 
         private void InitValidators()
         {
+            AddValidators(nameof(SelectedAccount), _accountNameValidation);
+
             AddValidators(nameof(EditAccountName), _accountNameValidation);
             AddValidators(nameof(EditAccountTraderFeeString), _traderFeeValidation);
 
@@ -198,7 +232,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             AddNewAccountCommand = new DelegateCommand(async () => await AddNewAccount()).ObservesCanExecute(() => IsAddNewAccountBtnEnabled);
         }
 
-        // Raise at start to force fields validation
+        // Raise on constructor to force fields validation
         private void InitBindings()
         {
             EditAccountName = string.Empty;
@@ -211,26 +245,25 @@ namespace TradeStats.ViewModel.ManageAccounts
             ExistingAccounts.AddRange(accounts);
         }
 
-        private void CheckIfCanSaveEditedAccount()
+        private bool NoPropertiesValidationErrors(params string[] propertyNames)
         {
-            List<bool> checkResults = new()
-            {
-                PropertyHasErrors(nameof(EditAccountName)),
-                PropertyHasErrors(nameof(EditAccountTraderFeeString)),              
-            };
-
-            IsSaveEditedAccountBtnEnabled = checkResults.TrueForAll(cr => cr == false);
+            var checkResults = propertyNames.Select(p => PropertyHasErrors(p)).ToList();
+            return checkResults.TrueForAll(cr => cr == false);
         }
 
-        private void CheckIfCanAddAccount()
-        {
-            List<bool> checkResults = new()
-            {
-                PropertyHasErrors(nameof(NewAccountName)),
-                PropertyHasErrors(nameof(NewAccountTraderFeeString))
-            };
+        private void CheckIfCanSaveEditedAccount() 
+            => IsSaveEditedAccountBtnEnabled = NoPropertiesValidationErrors(nameof(EditAccountName), nameof(EditAccountTraderFeeString));
 
-            IsAddNewAccountBtnEnabled = checkResults.TrueForAll(cr => cr == false);
+        private void CheckIfCanAddAccount() 
+            => IsAddNewAccountBtnEnabled = NoPropertiesValidationErrors(nameof(NewAccountName), nameof(NewAccountTraderFeeString));
+
+        private void CheckIfCurrentAccountSelected()
+        {
+            var isSelected = NoPropertiesValidationErrors(nameof(SelectedAccount));
+
+            IsSwitchAccountBtnEnabled = isSelected;
+            IsEditAccountBtnEnabled = isSelected;
+            IsDeleteAccountBtnEnabled = isSelected;
         }
 
         private async Task SaveEditedAccount()
@@ -270,8 +303,11 @@ namespace TradeStats.ViewModel.ManageAccounts
                 EditAccountName = string.Empty;
                 EditAccountTraderFeeString = string.Empty;
 
-                if (((ICachedData<Account>)_currentAccount).CurrentAccount?.Id == accountToDelete.Id)
-                    _currentAccount.UpdateCurrentAccount(null);
+                if (ExistingAccounts.Count == 0)
+                    SelectedAccount = string.Empty;
+
+                if (((ICachedData<Account>)_currentCachedAccount).CurrentAccount?.Id == accountToDelete.Id)
+                    _currentCachedAccount.UpdateCurrentAccount(null);
 
                 var tradesToDelete = await _context.Trades.Where(t => t.AccountId == accountToDelete.Id).ToListAsync();
                 var closedTradesToDelete = await _context.ClosedTrades.Where(ct => ct.AccountId == accountToDelete.Id).ToListAsync();
@@ -300,7 +336,7 @@ namespace TradeStats.ViewModel.ManageAccounts
             accounts.ForEach(a => a.SetInactive());
             var switchedAccount = accounts.First(a => a.AccountName == SelectedAccount);
             switchedAccount.SetActive();
-            _currentAccount.UpdateCurrentAccount(switchedAccount);
+            _currentCachedAccount.UpdateCurrentAccount(switchedAccount);
 
             await _context.SaveChangesAsync();
         } 

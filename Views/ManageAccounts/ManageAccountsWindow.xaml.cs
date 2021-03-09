@@ -28,10 +28,5 @@ namespace TradeStats.Views.ManageAccounts
                 MessageBox.Show(e.Error.ErrorContent.ToString());
             }
         }
-
-        private void SetupNewFeeStartDate()
-        {
-            NewFeeStartDate.DisplayDateEnd = DateTime.Now;
-        }
     }
 }
