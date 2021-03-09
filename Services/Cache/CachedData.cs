@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TradeStats.Models.Domain;
 using TradeStats.Services.Interfaces;
 
@@ -10,6 +11,8 @@ namespace TradeStats.Services.Cache
 
         private readonly ITradesContext _context;
 
+        public event Action CacheUpdated;
+
         public CachedData(ITradesContext context)
         {
             _context = context;
@@ -20,6 +23,7 @@ namespace TradeStats.Services.Cache
         public void UpdateCurrentAccount(Account account)
         {
             CurrentAccount = account;
+            CacheUpdated?.Invoke();
         }
     }
 }

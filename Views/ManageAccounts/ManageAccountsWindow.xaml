@@ -10,7 +10,8 @@
         xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True" 
         mc:Ignorable="d"
-        Title="Manage accounts" Height="350" Width="480">
+        ResizeMode="NoResize"
+        Title="Manage accounts" Height="340" Width="480">
     <Window.Resources>
         <ObjectDataProvider x:Key="dataFromEnum" MethodName="GetValues"
                             ObjectType="{x:Type System:Enum}">
