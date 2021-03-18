@@ -26,7 +26,7 @@
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <DockPanel Grid.Column="0">
+        <DockPanel Grid.Column="0" DataContext="{Binding EditAccountVM}">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                 <TextBlock Text="Switch account:"/>
                 <ComboBox ItemsSource="{Binding ExistingAccounts}" SelectedItem="{Binding SelectedAccount}" SelectedIndex="0"
@@ -72,7 +72,7 @@
                 </Button>
             </StackPanel>
         </DockPanel>
-        <DockPanel Grid.Column="2">
+        <DockPanel Grid.Column="2" DataContext="{Binding NewAccountVM}">
             <TextBlock DockPanel.Dock="Top" Text="New account" FontSize="13" FontWeight="DemiBold"/>
             <StackPanel DockPanel.Dock="Top" Margin="0,10,0,0" Orientation="Horizontal">
                 <TextBlock Text="Account name:"/>

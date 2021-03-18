@@ -44,9 +44,9 @@ namespace TradeStats.Infastructure
             container.RegisterType<ManageAccountsViewModel>();
 
             // Cache
-            container.RegisterSingleton<CachedData>();
-            container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CachedData>());
-            container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CachedData>());
+            container.RegisterSingleton<CurrentAccountCache>();
+            container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
+            container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
         }
 
         private static List<Type> GetTypesAssignableFrom<T>(this Assembly assembly)

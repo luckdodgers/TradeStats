@@ -5,7 +5,7 @@ using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Services.Cache
 {
-    class CachedData : IUpdateCachedData<Account>, ICachedData<Account>
+    class CurrentAccountCache : IUpdateCachedData<Account>, ICachedData<Account>
     {
         public Account CurrentAccount { get; private set; } = null;
 
@@ -13,14 +13,14 @@ namespace TradeStats.Services.Cache
 
         public event Action CacheUpdated;
 
-        public CachedData(ITradesContext context)
+        public CurrentAccountCache(ITradesContext context)
         {
             _context = context;
 
             CurrentAccount = _context.Accounts.FirstOrDefault(a => a.IsActive);
         }
 
-        public void UpdateCurrentAccount(Account account)
+        public void UpdateCache(Account account)
         {
             CurrentAccount = account;
             CacheUpdated?.Invoke();

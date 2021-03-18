@@ -19,6 +19,13 @@ namespace TradeStats.Views.ManageAccounts
 
             _container = container;
             DataContext = container.Resolve<ManageAccountsViewModel>();
+
+            Closed += ManageAccountsWindow_Closed;
+        }
+
+        private void ManageAccountsWindow_Closed(object sender, EventArgs e)
+        {
+            ((IDisposable)DataContext).Dispose();
         }
 
         private void ValidationError(object sender, ValidationErrorEventArgs e)
@@ -27,6 +34,6 @@ namespace TradeStats.Views.ManageAccounts
             {
                 MessageBox.Show(e.Error.ErrorContent.ToString());
             }
-        }
+        }   
     }
 }

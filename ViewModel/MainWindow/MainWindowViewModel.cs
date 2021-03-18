@@ -14,7 +14,7 @@ namespace TradeStats.ViewModel.MainWindow
     {
         private readonly IUnityContainer _container;
 
-        private TradesMergeTabViewModel _tradesMergeTab = new TradesMergeTabViewModel();
+        private readonly TradesMergeTabViewModel _tradesMergeTab = new TradesMergeTabViewModel();
         public TradesMergeTabViewModel TradesMergeTab => _tradesMergeTab;
 
         public ICommand OpenManageAccountsWindowCommand { get; private set; }

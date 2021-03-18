@@ -63,6 +63,12 @@ namespace TradeStats.ViewModel
             return true;
         }
 
+        protected bool NoPropertiesValidationErrors(params string[] propertyNames)
+        {
+            var checkResults = propertyNames.Select(p => PropertyHasErrors(p)).ToList();
+            return checkResults.TrueForAll(cr => cr == false);
+        }
+
         private void AddErrorToProperty(string propertyName, string error)
         {
             _errorsDict[propertyName].Add(error);

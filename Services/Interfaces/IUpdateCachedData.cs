@@ -2,6 +2,6 @@
 {
     public interface IUpdateCachedData<T>
     {
-        void UpdateCurrentAccount(T account);
+        void UpdateCache(T account);
     }
 }

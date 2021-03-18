@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TradeStats.Models.Common;
 
-namespace TradeStats.Models.DTO
+namespace TradeStats.Models.ViewModel
 {
     class OpenedTradesDto
     {
@@ -12,6 +9,7 @@ namespace TradeStats.Models.DTO
         public bool IsChecked { get; set; }
         public DateTime Datetime { get; set; }
         public string Pair { get; set; }
+        public TradeSide Side { get; set; }
         public decimal Price { get; set; }
         public decimal Sum { get; set; }
         public decimal Result { get; set; }
