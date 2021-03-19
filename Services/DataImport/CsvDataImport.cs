@@ -17,7 +17,7 @@ using TradeStats.Extensions;
 
 namespace TradeStats.Services.DataImport
 {
-    class CsvDataImport : IDataSource<OpenTrade>, IDisposable
+    class CsvDataImport : ICsvImport<OpenTrade>, IDisposable
     {
         private StreamReader _streamReader;
         private CsvReader _csvReader;
@@ -29,20 +29,20 @@ namespace TradeStats.Services.DataImport
             _curAccount = curAccount;
         }
 
-        public async Task<IEnumerable<OpenTrade>> LoadData()
+        public async Task<IEnumerable<OpenTrade>> LoadData(string path)
         {
-            var rawCsvData = await ParseAsync();
+            var rawCsvData = await ParseAsync(path);
             return await ConvertToTrades(rawCsvData);
         }
 
-        private async Task<IAsyncEnumerable<RawCsvData>> ParseAsync()
+        private async Task<IAsyncEnumerable<RawCsvData>> ParseAsync(string path)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "trades.csv");
+            //var path = Path.Combine(Directory.GetCurrentDirectory(), "trades.csv");
 
             if (!File.Exists(path))
                 throw new FileNotFoundException("File \"trades.csv\" not found in current directory.");

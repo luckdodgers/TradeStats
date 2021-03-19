@@ -12,7 +12,7 @@ namespace TradeStats.Extensions
         private static readonly Dictionary<RawCurrencies, Currency> CurrencyDict = new Dictionary<RawCurrencies, Currency>()
         {
             [RawCurrencies.XBT] = Currency.BTC,
-            [RawCurrencies.USDT] = Currency.USD
+            //[RawCurrencies.USDT] = Currency.USD
         };
 
         private static IEnumerable<string> _formattedCurrencies => Enum.GetNames(typeof(Currency));
@@ -27,7 +27,7 @@ namespace TradeStats.Extensions
             };
 
         public static string FormatPair(this string unformattedPair)
-        {
+        {            
             var result = HandleFormatting(unformattedPair);
 
             foreach (var rawCurrency in _rawCurrencies)
@@ -53,23 +53,25 @@ namespace TradeStats.Extensions
         // Choose handler for current format case
         private static string HandleFormatting(string unformattedPair)
         {
-            switch (unformattedPair)
-            {
-                case var up when unformattedPair.EndsWith(Currency.USD.ToString()):
-                    return FormatAsUsdPair(unformattedPair);
+            throw new NotImplementedException();
 
-                case var up when unformattedPair.EndsWith(RawCurrencies.USDT.ToString()):
-                    return FormatAsUsdtPair(unformattedPair);
+            //switch (unformattedPair)
+            //{
+            //    case var up when unformattedPair.EndsWith(Currency.USD.ToString()):
+            //        return FormatAsUsdPair(unformattedPair);
 
-                case var up when _formattedCurrencies.Any(fc => unformattedPair.EndsWith(fc.ToString())):
-                    return FormatAsTwoWayCryptoPair(up, _formattedCurrencies.FirstOrDefault(fc => up.EndsWith(fc.ToString())).ToString());
+            //    case var up when unformattedPair.EndsWith(RawCurrencies.USDT.ToString()):
+            //        return FormatAsUsdtPair(unformattedPair);
 
-                case var up when _rawCurrencies.Any(fc => unformattedPair.EndsWith(fc.ToString())):
-                    return FormatAsTwoWayCryptoPair(up, _rawCurrencies.FirstOrDefault(fc => up.EndsWith(fc.ToString())).ToString()) ;
+            //    case var up when _formattedCurrencies.Any(fc => unformattedPair.EndsWith(fc.ToString())):
+            //        return FormatAsTwoWayCryptoPair(up, _formattedCurrencies.FirstOrDefault(fc => up.EndsWith(fc.ToString())).ToString());
 
-                default:
-                    throw new FormatPatternException($"{unformattedPair} doesn't match any format pattern");
-            }
+            //    case var up when _rawCurrencies.Any(fc => unformattedPair.EndsWith(fc.ToString())):
+            //        return FormatAsTwoWayCryptoPair(up, _rawCurrencies.FirstOrDefault(fc => up.EndsWith(fc.ToString())).ToString()) ;
+
+            //    default:
+            //        throw new FormatPatternException($"{unformattedPair} doesn't match any format pattern");
+            //}
         }
 
         // Format as pair with USD, e.g. "BTC/USD"

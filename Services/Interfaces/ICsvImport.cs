@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace TradeStats.Services.Interfaces
 {
-    public interface IDataSource<T> where T : class
+    public interface ICsvImport<T> where T : class
     {
-        Task<IEnumerable<T>> LoadData();
+        Task<IEnumerable<T>> LoadData(string path);
     }
 }

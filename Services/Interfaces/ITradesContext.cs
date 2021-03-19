@@ -7,7 +7,7 @@ namespace TradeStats.Services.Interfaces
 {
     interface ITradesContext
     {
-        DbSet<OpenTrade> Trades { get; }
+        DbSet<OpenTrade> OpenTrades { get; }
         DbSet<ClosedTrade> ClosedTrades { get; }
         DbSet<Account> Accounts { get; }
 

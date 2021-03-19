@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TradeStats.Models.Domain
+﻿namespace TradeStats.Models.Domain
 {
     public enum TradeSide : short { Buy, Sell }
 
     public enum RawCurrencies : short
     {
-        USDT,
+        //USDT,
         XBT
     }
 
     public enum Currency : short
     {
         USD,
+        USDT,
         BTC,
         ETH,
         XRP,

@@ -1,4 +1,5 @@
 ﻿using System;
+using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Models.Domain
 {
@@ -62,5 +63,16 @@ namespace TradeStats.Models.Domain
         }
 
         public void SetFee(decimal newFee) => Fee = newFee;
+
+        public bool IsEqualByValue(OpenTrade comparingTrade)
+        {
+            return Datetime == comparingTrade.Datetime
+                && Side == comparingTrade.Side
+                && FirstCurrency == comparingTrade.FirstCurrency
+                && SecondCurrency == comparingTrade.SecondCurrency
+                && Price == comparingTrade.Price
+                && Amount == comparingTrade.Amount
+                && Sum == comparingTrade.Sum;        
+        }
     }
 }

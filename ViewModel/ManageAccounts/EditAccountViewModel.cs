@@ -212,7 +212,7 @@ namespace TradeStats.ViewModel.ManageAccounts
 
             if (!IsNewFeeStartsFromNextTrade)
             {
-                var test = await _context.Trades
+                var test = await _context.OpenTrades
                     .Where(t => t.AccountId == account.Id && t.Datetime >= NewFeeStartDate)
                     .ToListAsync();
 
@@ -245,10 +245,10 @@ namespace TradeStats.ViewModel.ManageAccounts
                 if (((ICachedData<Account>)_currentCachedAccount).CurrentAccount?.Id == accountToDelete.Id)
                     _currentCachedAccount.UpdateCache(null);
 
-                var tradesToDelete = await _context.Trades.Where(t => t.AccountId == accountToDelete.Id).ToListAsync();
+                var tradesToDelete = await _context.OpenTrades.Where(t => t.AccountId == accountToDelete.Id).ToListAsync();
                 var closedTradesToDelete = await _context.ClosedTrades.Where(ct => ct.AccountId == accountToDelete.Id).ToListAsync();
 
-                _context.Trades.RemoveRange(tradesToDelete);
+                _context.OpenTrades.RemoveRange(tradesToDelete);
                 _context.ClosedTrades.RemoveRange(closedTradesToDelete);
                 _context.Accounts.Remove(accountToDelete);
 

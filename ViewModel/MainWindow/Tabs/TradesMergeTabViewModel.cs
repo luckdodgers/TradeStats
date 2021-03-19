@@ -52,7 +52,13 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private async Task ReloadData()
         {
-            var openedTrades = await _context.Trades
+            if (_accountCache.CurrentAccount == null)
+            {
+                TradeMergeItems.Clear();
+                return;
+            }
+
+            var openedTrades = await _context.OpenTrades
                 .Where(t => t.AccountId == _accountCache.CurrentAccount.Id && !t.IsClosed)
                 .ToListAsync();
 

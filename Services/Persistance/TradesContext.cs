@@ -11,7 +11,7 @@ namespace TradeStats.Infastructure.Persistance
 {
     class TradesContext : DbContext, ITradesContext
     {
-        public DbSet<OpenTrade> Trades { get; set; }
+        public DbSet<OpenTrade> OpenTrades { get; set; }
         public DbSet<ClosedTrade> ClosedTrades { get; set; }
         public DbSet<Account> Accounts { get; set; }
 

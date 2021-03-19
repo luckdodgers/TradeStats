@@ -5,7 +5,7 @@ using Prism.Unity;
 using System.Windows;
 using TradeStats.Infastructure;
 using TradeStats.Services.Interfaces;
-using TradeStats.Views.Main;
+using TradeStats.Views;
 using Unity;
 
 namespace TradeStats

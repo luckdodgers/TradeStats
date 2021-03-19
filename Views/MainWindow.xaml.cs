@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using TradeStats.ViewModel.MainWindow;
 using Unity;
 
-namespace TradeStats.Views.Main
+namespace TradeStats.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -19,14 +19,7 @@ namespace TradeStats.Views.Main
             InitializeComponent();
 
             _container = container;
-            DataContext = container.Resolve<MainWindowViewModel>();
-
-            Closed += MainWindow_Closed;
-        }
-
-        private void MainWindow_Closed(object sender, EventArgs e)
-        {
-            ((IDisposable)DataContext).Dispose();
+            DataContext = container.Resolve<MainWindowViewModel>();           
         }
     }
 }

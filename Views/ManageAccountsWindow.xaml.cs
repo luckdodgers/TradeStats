@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using TradeStats.ViewModel.ManageAccounts;
 using Unity;
 
-namespace TradeStats.Views.ManageAccounts
+namespace TradeStats.Views
 {
     public partial class ManageAccountsWindow : Window
     {
