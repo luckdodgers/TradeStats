@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using TradeStats.ViewModel.MainWindow;
@@ -19,6 +20,13 @@ namespace TradeStats.Views.Main
 
             _container = container;
             DataContext = container.Resolve<MainWindowViewModel>();
+
+            Closed += MainWindow_Closed;
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            ((IDisposable)DataContext).Dispose();
         }
     }
 }

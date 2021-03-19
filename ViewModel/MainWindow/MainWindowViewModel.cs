@@ -1,5 +1,6 @@
 ﻿using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Windows.Input;
 using TradeStats.Extensions;
 using TradeStats.ViewModel.MainWindow.Tabs;
@@ -10,7 +11,7 @@ namespace TradeStats.ViewModel.MainWindow
 {
     using static WindowExtensions;
 
-    class MainWindowViewModel : BindableBase
+    class MainWindowViewModel : BindableBase, IDisposable
     {
         private readonly IUnityContainer _container;
 
@@ -32,6 +33,11 @@ namespace TradeStats.ViewModel.MainWindow
                 window.Activate();
 
             else new ManageAccountsWindow(_container).ShowDialog();
-        }  
+        }
+
+        public void Dispose()
+        {
+            TradesMergeTab.Dispose();
+        }
     }
 }

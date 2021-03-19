@@ -14,6 +14,8 @@ using TradeStats.ViewModel.ManageAccounts;
 using TradeStats.Views.Main;
 using TradeStats.Views.ManageAccounts;
 using Unity;
+using TradeStats.Services.Mappings;
+using AutoMapper;
 
 namespace TradeStats.Infastructure
 {
@@ -28,6 +30,14 @@ namespace TradeStats.Infastructure
                     .CreateLogger();
 
             container.RegisterInstance(typeof(ILogger), logger);
+
+            // Mappings
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new MappingProfile());
+            });
+
+            container.RegisterInstance<IMapper>(config.CreateMapper());
 
             // Settings
             container.RegisterSingleton<ISettingsProvider, JsonSettingsProvider>();

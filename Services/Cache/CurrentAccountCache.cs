@@ -5,7 +5,7 @@ using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Services.Cache
 {
-    class CurrentAccountCache : IUpdateCachedData<Account>, ICachedData<Account>
+    class CurrentAccountCache : ICachedData<Account>, IUpdateCachedData<Account>
     {
         public Account CurrentAccount { get; private set; } = null;
 

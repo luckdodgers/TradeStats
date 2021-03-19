@@ -1,16 +1,20 @@
-﻿using Prism.Commands;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Prism.Commands;
 using Prism.Mvvm;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TradeStats.Models.Domain;
 using TradeStats.Services.Interfaces;
-using TradeStats.Views.Main;
+using TradeStats.ViewModel.DTO;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
-    class TradesMergeTabViewModel : BindableBase
+    class TradesMergeTabViewModel : BindableBase, IDisposable
     {
         public TradesMergeTabViewModel()
         {
@@ -36,15 +40,24 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private readonly ICachedData<Account> _accountCache;
         private readonly ITradesContext _context;
+        private readonly IMapper _mapper;
 
         public TradesMergeTabViewModel(ICachedData<Account> accountCache)
         {
             _accountCache = accountCache;
+            _accountCache.CacheUpdated += OnCurrentAccountChange;
         }
 
-        private async Task LoadData()
+        private async void OnCurrentAccountChange() => await ReloadData();
+
+        private async Task ReloadData()
         {
-            var openedTrades = _context.Trades.Where(t => t.AccountId == _accountCache.CurrentAccount.Id && !t.IsClosed).ToList();
+            var openedTrades = await _context.Trades
+                .Where(t => t.AccountId == _accountCache.CurrentAccount.Id && !t.IsClosed)
+                .ToListAsync();
+
+            TradeMergeItems.Clear();
+            TradeMergeItems.AddRange(_mapper.Map<List<Trade>, List<TradeMergeItemDto>>(openedTrades));
         }
 
         private async Task Merge()
@@ -60,6 +73,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         private async Task UncheckAll()
         {
 
+        }
+
+        public void Dispose()
+        {
+            _accountCache.CacheUpdated -= OnCurrentAccountChange;
         }
     }
 }

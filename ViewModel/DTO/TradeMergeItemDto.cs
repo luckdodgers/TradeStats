@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TradeStats.Models.Common;
+using TradeStats.Models.Domain;
 
-namespace TradeStats.Views.Main
+namespace TradeStats.ViewModel.DTO
 {
     public class TradeMergeItemDto
     {
@@ -16,6 +12,6 @@ namespace TradeStats.Views.Main
         public TradeSide Side { get; set; }
         public string Price { get; set; }
         public string Sum { get; set; }
-        public string Result { get; set; }
+        public string Amount { get; set; }
     }
 }

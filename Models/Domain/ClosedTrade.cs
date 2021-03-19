@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TradeStats.Models.Common;
 
 namespace TradeStats.Models.Domain
 {

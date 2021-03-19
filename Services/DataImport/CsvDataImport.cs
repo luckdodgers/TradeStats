@@ -1,0 +1,100 @@
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Formats.Asn1;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TradeReportsConverter.Extensions;
+using TradeReportsConverter.Models;
+using TradeStats.Models.Domain;
+using TradeStats.Models.Import;
+using TradeStats.Services.Interfaces;
+using TradeStats.Extensions;
+
+namespace TradeStats.Services.DataImport
+{
+    class CsvDataImport : IDataSource<Trade>, IDisposable
+    {
+        private StreamReader _streamReader;
+        private CsvReader _csvReader;
+
+        private readonly ICachedData<Account> _curAccount;
+
+        public CsvDataImport(ICachedData<Account> curAccount)
+        {
+            _curAccount = curAccount;
+        }
+
+        public async Task<IEnumerable<Trade>> LoadData()
+        {
+            var rawCsvData = await ParseAsync();
+            return await ConvertToTrades(rawCsvData);
+        }
+
+        private async Task<IAsyncEnumerable<RawCsvData>> ParseAsync()
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                PrepareHeaderForMatch = args => args.Header.ToLower(),
+            };
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "trades.csv");
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException("File \"trades.csv\" not found in current directory.");
+
+            _streamReader = new StreamReader(path);
+            _csvReader = new CsvReader(_streamReader, config);
+
+            return await Task.Run(() => _csvReader.GetRecordsAsync<RawCsvData>());
+        }
+
+        private async Task<List<Trade>> ConvertToTrades(IAsyncEnumerable<RawCsvData> readData)
+        {
+            var result = new List<Trade>(50);
+
+            await foreach (var entry in readData)
+            {
+                var trade = new Trade
+                    (
+                        accountId: _curAccount.CurrentAccount.Id,
+                        datetime: entry.Time,
+                        type: entry.Type.ParseToSideEnum(),
+                        firstCurrency: entry.Pair.GetCurrencyEnumPair().Item1,
+                        secondCurrency: entry.Pair.GetCurrencyEnumPair().Item2,
+                        price: entry.Price,
+                        amount: entry.Vol,
+                        sum: entry.Cost,
+                        fee: entry.Fee
+                    );
+
+                result.Add(trade);
+            }
+
+            return result;
+        }
+
+        private async Task WriteToCsv(IEnumerable<TradeHistoryData> readyDataCollection)
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "Report");
+
+            Directory.CreateDirectory(path);
+
+            using (var writer = new StreamWriter(File.Open(Path.Combine(path, "report.csv"), FileMode.OpenOrCreate, FileAccess.Write)))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                await csv.WriteRecordsAsync(readyDataCollection);
+            }
+        }
+
+        public void Dispose()
+        {
+            _streamReader?.Dispose();
+            _csvReader?.Dispose();
+        }
+    }
+}

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TradeStats.Models.Common;
 
 namespace TradeStats.Models.Domain
 {
@@ -10,7 +7,7 @@ namespace TradeStats.Models.Domain
         protected Trade() { }
 
         public Trade(int accountId, DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
-            decimal price, decimal amount, decimal fee)
+            decimal price, decimal amount, decimal sum, decimal fee)
         {
             AccountId = accountId;
             Datetime = datetime;
@@ -19,6 +16,7 @@ namespace TradeStats.Models.Domain
             SecondCurrency = secondCurrency;
             Price = price;
             Amount = amount;
+            Sum = sum;
             Residue = amount; // NP: Check for correctness while getting from DB
             Fee = fee;
         }
@@ -31,6 +29,7 @@ namespace TradeStats.Models.Domain
         public Currency SecondCurrency { get; }
         public decimal Price { get; }
         public decimal Amount { get; }
+        public decimal Sum { get; private set; }
         public decimal Fee { get; private set; }
         public decimal Residue { get; private set; }
         public bool IsClosed { get; private set; }
@@ -41,6 +40,7 @@ namespace TradeStats.Models.Domain
             if (Residue >= closeAmount)
             {
                 Residue -= closeAmount;
+                Sum = Price * Residue;
                 return 0;
             }
 
@@ -55,6 +55,7 @@ namespace TradeStats.Models.Domain
         public void SetResidue(decimal newResidue)
         {
             Residue = newResidue;
+            Sum = Price * Residue;
 
             if (newResidue == 0)
                 IsClosed = true;
