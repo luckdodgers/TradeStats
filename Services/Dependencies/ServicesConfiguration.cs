@@ -16,6 +16,7 @@ using TradeStats.Views.ManageAccounts;
 using Unity;
 using TradeStats.Services.Mappings;
 using AutoMapper;
+using TradeStats.Services.DataImport;
 
 namespace TradeStats.Infastructure
 {
@@ -57,6 +58,9 @@ namespace TradeStats.Infastructure
             container.RegisterSingleton<CurrentAccountCache>();
             container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
             container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
+
+            // Data load
+            container.RegisterType<IDataSource<OpenTrade>, CsvDataImport>();
         }
 
         private static List<Type> GetTypesAssignableFrom<T>(this Assembly assembly)

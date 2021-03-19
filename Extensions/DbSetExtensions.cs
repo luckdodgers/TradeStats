@@ -7,7 +7,7 @@ namespace TradeStats.Extensions
 {
     static class DbSetExtensions
     {
-        public static IQueryable<Trade> ForCurrentAccount(this DbSet<Trade> trades, ICachedData<Account> cached) 
+        public static IQueryable<OpenTrade> ForCurrentAccount(this DbSet<OpenTrade> trades, ICachedData<Account> cached) 
             => trades.Where(t => t.AccountId == cached.CurrentAccount.Id);
 
         public static IQueryable<ClosedTrade> ForCurrentAccount(this DbSet<ClosedTrade> closedTrades, ICachedData<Account> cached)

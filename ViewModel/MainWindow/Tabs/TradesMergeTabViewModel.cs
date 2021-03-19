@@ -57,7 +57,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 .ToListAsync();
 
             TradeMergeItems.Clear();
-            TradeMergeItems.AddRange(_mapper.Map<List<Trade>, List<TradeMergeItemDto>>(openedTrades));
+            TradeMergeItems.AddRange(_mapper.Map<List<OpenTrade>, List<TradeMergeItemDto>>(openedTrades));
         }
 
         private async Task Merge()

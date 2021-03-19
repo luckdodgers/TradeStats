@@ -17,7 +17,7 @@ using TradeStats.Extensions;
 
 namespace TradeStats.Services.DataImport
 {
-    class CsvDataImport : IDataSource<Trade>, IDisposable
+    class CsvDataImport : IDataSource<OpenTrade>, IDisposable
     {
         private StreamReader _streamReader;
         private CsvReader _csvReader;
@@ -29,7 +29,7 @@ namespace TradeStats.Services.DataImport
             _curAccount = curAccount;
         }
 
-        public async Task<IEnumerable<Trade>> LoadData()
+        public async Task<IEnumerable<OpenTrade>> LoadData()
         {
             var rawCsvData = await ParseAsync();
             return await ConvertToTrades(rawCsvData);
@@ -53,13 +53,13 @@ namespace TradeStats.Services.DataImport
             return await Task.Run(() => _csvReader.GetRecordsAsync<RawCsvData>());
         }
 
-        private async Task<List<Trade>> ConvertToTrades(IAsyncEnumerable<RawCsvData> readData)
+        private async Task<List<OpenTrade>> ConvertToTrades(IAsyncEnumerable<RawCsvData> readData)
         {
-            var result = new List<Trade>(50);
+            var result = new List<OpenTrade>(50);
 
             await foreach (var entry in readData)
             {
-                var trade = new Trade
+                var trade = new OpenTrade
                     (
                         accountId: _curAccount.CurrentAccount.Id,
                         datetime: entry.Time,

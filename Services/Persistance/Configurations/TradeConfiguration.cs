@@ -5,9 +5,9 @@ using TradeStats.Models.Domain;
 
 namespace TradeStats.Services.Persistance.Configurations
 {
-    class TradeConfiguration : IEntityTypeConfiguration<Trade>
+    class TradeConfiguration : IEntityTypeConfiguration<OpenTrade>
     {
-        public void Configure(EntityTypeBuilder<Trade> builder)
+        public void Configure(EntityTypeBuilder<OpenTrade> builder)
         {
             builder.HasKey(b => b.Id);
 

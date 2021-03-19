@@ -2,11 +2,11 @@
 
 namespace TradeStats.Models.Domain
 {
-    public class Trade
+    public class OpenTrade
     {
-        protected Trade() { }
+        protected OpenTrade() { }
 
-        public Trade(int accountId, DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
+        public OpenTrade(int accountId, DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
             decimal price, decimal amount, decimal sum, decimal fee)
         {
             AccountId = accountId;

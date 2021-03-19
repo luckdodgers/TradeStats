@@ -31,7 +31,7 @@ namespace TradeStats.Models.Domain
         public decimal Amount { get; }
         public decimal RoundFee { get; }
 
-        public static ClosedTrade Create(Trade openTrade, Trade closeTrade)
+        public static ClosedTrade Create(OpenTrade openTrade, OpenTrade closeTrade)
         {
             return new ClosedTrade
                 (
