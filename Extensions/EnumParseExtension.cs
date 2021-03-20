@@ -32,19 +32,26 @@ namespace TradeStats.Extensions
 
         public static (Currency, Currency) GetCurrencyEnumPair(this string rawValue)
         {
+            var tempValue = rawValue;
             var formattedStringCurrencies = new List<string>(2);
 
             foreach (var formatted in _formattedCurrencies)
             {
-                if (rawValue.Contains(formatted))
+                if (tempValue.Contains(formatted))
+                {
                     formattedStringCurrencies.Add(formatted);
+                    tempValue = tempValue.Replace(formatted, string.Empty);
+
+                    if (formattedStringCurrencies.Count == 2)
+                        break;
+                }
             }
 
             if (formattedStringCurrencies.Count < 2)
             {
                 foreach (var raw in _rawCurrencies)
                 {
-                    if (rawValue.Contains(raw))
+                    if (tempValue.Contains(raw))
                     {
                         var formattedValue = CurrencyDict[(RawCurrencies)Enum.Parse(typeof(RawCurrencies), raw)];
                         formattedStringCurrencies.Add(formattedValue.ToString());

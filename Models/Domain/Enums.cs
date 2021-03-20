@@ -10,8 +10,8 @@
 
     public enum Currency : short
     {
-        USD,
         USDT,
+        USD,
         BTC,
         ETH,
         XRP,

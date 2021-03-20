@@ -5,7 +5,7 @@ using TradeStats.Models.Domain;
 
 namespace TradeStats.Services.Interfaces
 {
-    interface ITradesContext
+    public interface ITradesContext
     {
         DbSet<OpenTrade> OpenTrades { get; }
         DbSet<ClosedTrade> ClosedTrades { get; }

@@ -75,12 +75,10 @@ namespace TradeStats.ViewModel.ManageAccounts
         #endregion
 
         private readonly ITradesContext _context;
-        private readonly IUpdateCachedData<Account> _currentCachedAccount;
 
-        public NewAccountViewModel(ITradesContext context, IUpdateCachedData<Account> currentCachedAccount)
+        public NewAccountViewModel(ITradesContext context)
         {
             _context = context;
-            _currentCachedAccount = currentCachedAccount;
 
             InitValidators();
             InitCommands();

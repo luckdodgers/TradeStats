@@ -7,7 +7,7 @@
         prism:ViewModelLocator.AutoWireViewModel="True" 
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="MainWindow" Height="550" Width="760">
+        Title="MainWindow" Height="550" Width="745">
     <Window.Resources>
 
         <Style TargetType="MenuItem">
@@ -19,7 +19,7 @@
         <DockPanel>
             <Menu DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="0,5,0,5">
                 <MenuItem Command="{Binding OpenManageAccountsWindowCommand}"  Header="Manage accounts" Height="22"/>
-                <MenuItem Command="{Binding OpenImportWindowCommand}" Header="Import history" Height="22"/>
+                <MenuItem Command="{Binding OpenImportWindowCommand}" IsEnabled="{Binding IsAccountImportMenuItemEnabled}" Header="Import history" Height="22"/>
                 <MenuItem Header="Settings" Height="22" Margin="5,0,0,0"/>
             </Menu>
             <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -31,23 +31,25 @@
                         <TabItem.Content>
                             <DockPanel Margin="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" LastChildFill="False">
                                 <DockPanel.Dock>Left</DockPanel.Dock>
-                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TradeMergeItems}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                          AutoGenerateColumns="False" EnableColumnVirtualization = "True" EnableRowVirtualization = "True">
+                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TradeMergeItems}"
+                                          SelectionUnit="FullRow" SelectionMode="Single" HorizontalAlignment="Stretch" 
+                                          VerticalAlignment="Stretch" AutoGenerateColumns="False" EnableColumnVirtualization="True" EnableRowVirtualization="True">
                                     <DataGrid.Columns>
-                                        <DataGridCheckBoxColumn></DataGridCheckBoxColumn>
-                                        <DataGridTextColumn Width="90" Header="Date" Binding="{Binding Date}"></DataGridTextColumn>
-                                        <DataGridTextColumn Width="70" Header="Pair" Binding="{Binding Pair}"></DataGridTextColumn>
-                                        <DataGridTextColumn Width="60" Header="Side" Binding="{Binding Side}"></DataGridTextColumn>
-                                        <DataGridTextColumn Width="100" Header="Price" Binding="{Binding Price}"></DataGridTextColumn>
-                                        <DataGridTextColumn Width="100" Header="Sum" Binding="{Binding Sum}"></DataGridTextColumn>
-                                        <DataGridTextColumn Width="100" Header="Result" Binding="{Binding Result}"></DataGridTextColumn>
+                                        
+                                        <DataGridTextColumn Width="90" Header="Date" Binding="{Binding Date}"/>
+                                        <DataGridTextColumn Width="70" Header="Pair" Binding="{Binding Pair}"/>
+                                        <DataGridTextColumn Width="60" Header="Side" Binding="{Binding Side}"/>
+                                        <DataGridTextColumn Width="100" Header="Price" Binding="{Binding Price}"/>
+                                        <DataGridTextColumn Width="100" Header="Sum" Binding="{Binding Sum}"/>
+                                        <DataGridTextColumn Width="100" Header="Result" Binding="{Binding Amount}"/>
+                                        
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <Grid Margin="6,0,0,0">
                                     <StackPanel Orientation="Vertical">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock FontSize="14" FontStyle="Italic" Text="Last trade:"></TextBlock>
-                                            <TextBlock x:Name="LastTradeDt" FontStyle="Italic" Margin="4,0,0,0" FontSize="14" Text="14-12-2021"></TextBlock>
+                                            <TextBlock x:Name="LastTradeDt" Text="{Binding LastTradeDate}" FontStyle="Italic" Margin="4,0,0,0" FontSize="14" ></TextBlock>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                                             <TextBlock Margin="0,0,5,0" FontSize="13" Text="Currency:"></TextBlock>
@@ -62,12 +64,21 @@
                                             <TextBlock x:Name="AbsProfitValue" Margin="4,0,0,0" FontSize="14"></TextBlock>
                                         </StackPanel>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="UpdateUnmergedTradesBtn" Command="{Binding MergeCommand}" Height="30" Width="80" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                                            <TextBlock Text="Merge" FontSize="13" FontWeight="DemiBold"></TextBlock>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,90">
+                                        <TextBlock Text="Selected:" FontSize="12.5"/>
+                                        <TextBlock Text="{Binding SelectedTradesCounter}" FontSize="12.5"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,45">
+                                        <Button x:Name="AddToMergeBtn" CommandParameter="{Binding ElementName=TradesDataGrid, Path=SelectedItem}" Command="{Binding AddToMergeCommand}" IsEnabled="{Binding IsAddBtnEnabled}" Height="35" Width="85" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                            <TextBlock Text="Add" FontSize="13"/>
                                         </Button>
-                                        <Button x:Name="UncheckAllBtn" Margin="10,10,0,0" Height="30" Width="80" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                                            <TextBlock Text="Uncheck all" FontSize="13"></TextBlock>
+                                        <Button x:Name="UncheckAllBtn" Margin="10,10,0,0" Height="35" Width="85" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                            <TextBlock Text="Remove all" FontSize="13"></TextBlock>
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                        <Button x:Name="MergeTradesBtn" Command="{Binding MergeCommand}" Height="35" Width="85" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                            <TextBlock Text="Merge" FontSize="14" FontWeight="DemiBold"></TextBlock>
                                         </Button>
                                     </StackPanel>
                                 </Grid>

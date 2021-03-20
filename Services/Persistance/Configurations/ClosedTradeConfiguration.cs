@@ -13,6 +13,12 @@ namespace TradeStats.Services.Persistance.Configurations
             builder.HasOne<Account>()
                 .WithMany()
                 .HasForeignKey(b => b.AccountId);
+
+            builder.Property(b => b.BuyCurrency)
+                .HasConversion<int>();
+
+            builder.Property(b => b.SellCurrency)
+                .HasConversion<int>();
         }
     }
 }

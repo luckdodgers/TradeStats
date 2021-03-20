@@ -8,7 +8,10 @@ namespace TradeStats.Services.Persistance.Configurations
     {
         public void Configure(EntityTypeBuilder<Account> builder)
         {
-            builder.HasKey(b => b.Id);            
+            builder.HasKey(b => b.Id);
+
+            builder.Property(b => b.Exchange)
+                .HasConversion<int>();
         }
     }
 }
