@@ -39,16 +39,19 @@ namespace TradeStats.Views
             row.Background = brush;
         }
 
-        private void ClearTradesGridSelectedItemColor()
+        private void ClearTradesGridItemColor()
         {
-            var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(TradesDataGrid.SelectedItem);
-            row.Background = Brushes.Transparent;
+            foreach (var item in TradesDataGrid.Items)
+            {
+                var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(item);
+                row.Background = Brushes.Transparent;
+            }
         }
 
         private void AddToMergeBtn_Click(object sender, RoutedEventArgs e) => SetTradesGridSelectedItemColor(itemToMergeBrush);
 
-        private void UncheckAllBtn_Click(object sender, RoutedEventArgs e) => ClearTradesGridSelectedItemColor();
+        private void UncheckAllBtn_Click(object sender, RoutedEventArgs e) => ClearTradesGridItemColor();
 
-        private void MergeTradesBtn_Click(object sender, RoutedEventArgs e) => ClearTradesGridSelectedItemColor();
+        private void MergeTradesBtn_Click(object sender, RoutedEventArgs e) => ClearTradesGridItemColor();
     }
 }

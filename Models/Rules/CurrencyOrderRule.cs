@@ -9,6 +9,8 @@ namespace TradeStats.Models.Rules
 {
     public static class CurrencyOrderRule
     {
+        public static readonly string AnyCurrencyString = "- All -";
+
         public static List<string> GetCurrenciesForCombobox(this IEnumerable<Currency> currencies)
         {
             var filteredCollection = currencies.Except(new List<Currency>() { Currency.USDT, Currency.USD }).ToList();
@@ -17,7 +19,7 @@ namespace TradeStats.Models.Rules
             orderedList.AddRange(filteredCollection.Except(orderedList).OrderBy(cur => cur.ToString()));
 
             var resultList = orderedList.Select(cur => cur.ToString()).ToList();
-            resultList.Insert(0, "- Any -");
+            resultList.Insert(0, AnyCurrencyString);
 
             return resultList;
         }

@@ -18,8 +18,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 {
     class TradesMergeTabViewModel : BindableBase, IHandleAccountSwitch, IDisposable
     {
-        public ObservableCollection<TradeMergeItemDto> TradeMergeItems { get; set; } = new ObservableCollection<TradeMergeItemDto>();
+        public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
+
+        private IReadOnlyList<TradeMergeItemDto> _allOpenTradeDtoList = new List<TradeMergeItemDto>();
+        private IReadOnlyList<OpenTrade> _allOpenTrades = new List<OpenTrade>();
 
         #region Commands
         public ICommand MergeCommand { get; private set; }
@@ -31,7 +34,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         public string SelectedCurrency
         {
             get => _selectedCurrency;
-            set => SetProperty(ref _selectedCurrency, value);
+            set
+            {
+                SetProperty(ref _selectedCurrency, value);
+                OnCurrencySelect(_selectedCurrency);
+            } 
         }
         #endregion
 
@@ -108,23 +115,45 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 LastTradeDate = string.Empty;
             }
 
-            await ReloadTableData();
+            await ReloadTableOnAccountSwitch();
         }
 
-        private async Task ReloadTableData()
+        private async Task ReloadTableOnAccountSwitch()
         {
             if (_accountCache.CurrentAccount == null)
             {
-                TradeMergeItems.Clear();
+                TableOpenTrades.Clear();
                 return;
             }
 
-            var openedTrades = await _context.OpenTrades
+            _allOpenTrades = await _context.OpenTrades
+                .AsNoTracking()
                 .Where(t => t.AccountId == _accountCache.CurrentAccount.Id && !t.IsClosed)
                 .ToListAsync();
 
-            TradeMergeItems.Clear();
-            TradeMergeItems.AddRange(_mapper.Map<List<OpenTrade>, List<TradeMergeItemDto>>(openedTrades));
+            _allOpenTradeDtoList = _mapper.Map<IReadOnlyList<OpenTrade>, IReadOnlyList<TradeMergeItemDto>>(_allOpenTrades);
+
+            TableOpenTrades.Clear();
+            TableOpenTrades.AddRange(_allOpenTradeDtoList);
+        }
+
+        private void OnCurrencySelect(string selectedCurrency)
+        {
+            if (selectedCurrency == CurrencyOrderRule.AnyCurrencyString)
+            {
+                TableOpenTrades.Clear();
+                TableOpenTrades.AddRange(_allOpenTradeDtoList);
+            }
+
+            else
+            {
+                var selectedCurrencyEnum = Enum.Parse<Currency>(selectedCurrency);
+                var filteredOpenTrades = _allOpenTrades.Where(t => t.FirstCurrency == selectedCurrencyEnum);
+                var filteredOpenTradesDto = _allOpenTradeDtoList.Where(t => filteredOpenTrades.Select(ft => ft.Id).Any(id => id == t.Id));
+
+                TableOpenTrades.Clear();
+                TableOpenTrades.AddRange(filteredOpenTradesDto);              
+            }
         }
 
         private void AddToMerge(object tradeToAdd)

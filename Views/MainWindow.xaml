@@ -31,7 +31,7 @@
                         <TabItem.Content>
                             <DockPanel Margin="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" LastChildFill="False">
                                 <DockPanel.Dock>Left</DockPanel.Dock>
-                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TradeMergeItems}"
+                                <DataGrid x:Name="TradesDataGrid" ItemsSource="{Binding TableOpenTrades}"
                                           SelectionUnit="FullRow" SelectionMode="Single" HorizontalAlignment="Stretch" IsReadOnly="True"
                                           VerticalAlignment="Stretch" AutoGenerateColumns="False" EnableColumnVirtualization="True" EnableRowVirtualization="True">
                                     <DataGrid.Columns>
