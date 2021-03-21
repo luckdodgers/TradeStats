@@ -18,7 +18,6 @@ namespace TradeStats.Models.Domain
             Price = price;
             Amount = amount;
             Sum = sum;
-            Residue = amount; // NP: Check for correctness while getting from DB
             Fee = fee;
         }
 
@@ -29,25 +28,25 @@ namespace TradeStats.Models.Domain
         public Currency FirstCurrency { get; }
         public Currency SecondCurrency { get; }
         public decimal Price { get; }
-        public decimal Amount { get; }
+        public decimal Amount { get; private set; }
         public decimal Sum { get; private set; }
         public decimal Fee { get; private set; }
-        public decimal Residue { get; private set; }
         public bool IsClosed { get; private set; }
 
         /// <returns>closeAmount residue</returns>
         public decimal SubstractCloseAmount(decimal closeAmount)
         {
-            if (Residue >= closeAmount)
+            if (Amount > closeAmount)
             {
-                Residue -= closeAmount;
-                Sum = Price * Residue;
+                Amount -= closeAmount;
+                Sum = Price * Amount;
                 return 0;
             }
 
-            var closeAmountResidue = closeAmount - Residue;
+            var closeAmountResidue = closeAmount - Amount;
 
-            Residue = 0;
+            Amount = 0;
+            Sum = 0;
             IsClosed = true;
 
             return closeAmountResidue;
@@ -55,8 +54,8 @@ namespace TradeStats.Models.Domain
 
         public void SetResidue(decimal newResidue)
         {
-            Residue = newResidue;
-            Sum = Price * Residue;
+            Amount = newResidue;
+            Sum = Price * Amount;
 
             if (newResidue == 0)
                 IsClosed = true;

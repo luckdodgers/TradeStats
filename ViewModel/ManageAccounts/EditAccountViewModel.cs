@@ -152,11 +152,13 @@ namespace TradeStats.ViewModel.ManageAccounts
 
         private readonly ITradesContext _context;
         private readonly IUpdateCachedData<Account> _currentCachedAccount;
+        private readonly ICachedData<Account> _cachedData;
 
-        public EditAccountViewModel(ITradesContext context, IUpdateCachedData<Account> currentCachedAccount)
+        public EditAccountViewModel(ITradesContext context, IUpdateCachedData<Account> currentCachedAccount, ICachedData<Account> cachedData)
         {
             _context = context;
             _currentCachedAccount = currentCachedAccount;
+            _cachedData = cachedData;
 
             InitValidators();
             InitCommands();
@@ -188,6 +190,9 @@ namespace TradeStats.ViewModel.ManageAccounts
 
             var accounts = _context.Accounts.AsNoTracking().Select(a => a.AccountName);
             ExistingAccounts.AddRange(accounts);
+
+            if (ExistingAccounts.Count > 0)
+                SelectedAccount = ExistingAccounts.First(a => a == _cachedData.CurrentAccount.AccountName);
         }
 
         private void CheckIfCanSaveEditedAccount()

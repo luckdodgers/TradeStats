@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TradeStats.Models.Domain;
+using TradeStats.Models.Rules;
 using TradeStats.Services.Interfaces;
 using TradeStats.ViewModel.DTO;
 using TradeStats.ViewModel.Interfaces;
@@ -18,10 +19,20 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
     class TradesMergeTabViewModel : BindableBase, IHandleAccountSwitch, IDisposable
     {
         public ObservableCollection<TradeMergeItemDto> TradeMergeItems { get; set; } = new ObservableCollection<TradeMergeItemDto>();
+        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
 
         #region Commands
         public ICommand MergeCommand { get; private set; }
         public ICommand UncheckAllCommand { get; private set; }
+        #endregion
+
+        #region SelectedCurrency
+        private string _selectedCurrency;
+        public string SelectedCurrency
+        {
+            get => _selectedCurrency;
+            set => SetProperty(ref _selectedCurrency, value);
+        }
         #endregion
 
         #region IsMergeBtnEnabled
@@ -51,12 +62,12 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         }
         #endregion
 
-        #region SelectedTradesCounter
-        private string _selectedTradesCounter = "0/2";
-        public string SelectedTradesCounter
+        #region MergingTradesCounter
+        private string _mergingTradesCounter = "0/2";
+        public string MergingTradesCounter
         {
-            get => _selectedTradesCounter;
-            set => SetProperty(ref _selectedTradesCounter, value);
+            get => _mergingTradesCounter;
+            set => SetProperty(ref _mergingTradesCounter, value);
         }
         #endregion
 
@@ -74,9 +85,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             _context = context;
             _mapper = mapper;
 
-            MergeCommand = new DelegateCommand(async () => await Merge(), CanMerge).ObservesProperty(() => IsMergeBtnEnabled);
+            MergeCommand = new DelegateCommand(async () => await Merge()).ObservesCanExecute(() => IsMergeBtnEnabled);
             UncheckAllCommand = new DelegateCommand(async () => await UncheckAll());
             AddToMergeCommand = new DelegateCommand<object>(AddToMerge);
+
+            SelectedCurrency = CurrenciesList[0];
         }
 
         public async void OnAccountSwitch()
@@ -118,8 +131,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         {
             var tradeDto = tradeToAdd as TradeMergeItemDto;
 
+            if (_selectedTradesToMerge.Contains(tradeDto) || _selectedTradesToMerge.Any(t => t.Side == tradeDto.Side))
+                return;
+
             _selectedTradesToMerge.Add(tradeDto);
-            SelectedTradesCounter = $"{_selectedTradesToMerge.Count}/2";
+            MergingTradesCounter = $"{_selectedTradesToMerge.Count}/2";
 
             IsAddBtnEnabled = _selectedTradesToMerge.Count < 2;
         }
@@ -127,11 +143,6 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         private async Task Merge()
         {
             
-        }
-
-        private bool CanMerge()
-        {
-            return true;
         }
 
         private async Task UncheckAll()

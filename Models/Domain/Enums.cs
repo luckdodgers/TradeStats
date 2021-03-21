@@ -4,7 +4,6 @@
 
     public enum RawCurrencies : short
     {
-        //USDT,
         XBT
     }
 
@@ -16,7 +15,6 @@
         ETH,
         XRP,
         DOT,
-        NEO,
         ADA,
         LINK
     }

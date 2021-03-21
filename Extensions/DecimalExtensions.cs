@@ -6,7 +6,7 @@ namespace TradeReportsConverter.Extensions
 {
     public static class DecimalExtensions
     {
-        public static string ToNiceString(this decimal number)
+        public static string ToTableViewString(this decimal number)
         {
             number = RoundNumber(number);
             var result = number.ToString();

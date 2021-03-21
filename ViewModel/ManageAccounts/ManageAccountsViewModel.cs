@@ -8,6 +8,7 @@ namespace TradeStats.ViewModel.ManageAccounts
     {
         private readonly ITradesContext _tradesContext;
         private readonly IUpdateCachedData<Account> _updateCachedData;
+        private readonly ICachedData<Account> _cachedData;
 
         private readonly EditAccountViewModel _editAccountViewModel;
         public EditAccountViewModel EditAccountVM => _editAccountViewModel;
@@ -15,12 +16,13 @@ namespace TradeStats.ViewModel.ManageAccounts
         private readonly NewAccountViewModel _newAccountViewModel;
         public NewAccountViewModel NewAccountVM => _newAccountViewModel;
 
-        public ManageAccountsViewModel(ITradesContext tradesContext, IUpdateCachedData<Account> updateCachedData)
+        public ManageAccountsViewModel(ITradesContext tradesContext, IUpdateCachedData<Account> updateCachedData, ICachedData<Account> cachedData)
         {
             _tradesContext = tradesContext;
             _updateCachedData = updateCachedData;
+            _cachedData = cachedData;
 
-            _editAccountViewModel = new EditAccountViewModel(_tradesContext, _updateCachedData);
+            _editAccountViewModel = new EditAccountViewModel(_tradesContext, _updateCachedData, _cachedData);
             _newAccountViewModel = new NewAccountViewModel(_tradesContext);
 
             NewAccountVM.NewAccountAdd += EditAccountVM.OnNewAccountAdd;

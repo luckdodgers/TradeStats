@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        xmlns:StyleAlias="clr-namespace:TradeStats.Models.Settings"
+        xmlns:EnumAlias="clr-namespace:TradeStats.Models.Settings"
         xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True" 
         mc:Ignorable="d"
@@ -15,7 +15,7 @@
         <ObjectDataProvider x:Key="dataFromEnum" MethodName="GetValues"
                             ObjectType="{x:Type System:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="StyleAlias:Exchanges"/>
+                <x:Type TypeName="EnumAlias:Exchanges"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>

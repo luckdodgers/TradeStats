@@ -8,7 +8,7 @@ using TradeStats.Models.Domain;
 
 namespace TradeStats.Extensions
 {
-    public static class EnumParseExtension
+    public static class EnumParseExtensions
     {
         private static readonly Dictionary<RawCurrencies, Currency> CurrencyDict = new Dictionary<RawCurrencies, Currency>()
         {
