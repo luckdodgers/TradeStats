@@ -21,8 +21,9 @@ namespace TradeStats.Views
     {
         private readonly IUnityContainer _container;
 
-        private const string itemToMergeColor = "#acc4e8";
-        private readonly SolidColorBrush itemToMergeBrush = itemToMergeColor.ToBrush();
+        private const string _itemToMergeColor = "#acc4e8";
+        private readonly SolidColorBrush _itemToMergeBrush = _itemToMergeColor.ToBrush();
+        private readonly IMainWindowViewModel _viewModel;
 
         public MainWindow(IUnityContainer container)
         {
@@ -30,13 +31,9 @@ namespace TradeStats.Views
 
             _container = container;
             DataContext = container.Resolve<MainWindowViewModel>();
-            ((IHandleAccountSwitch)DataContext).OnAccountSwitch();
-        }
 
-        private void SetTradesGridSelectedItemColor(SolidColorBrush brush)
-        {
-            var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(TradesDataGrid.SelectedItem);
-            row.Background = brush;
+            _viewModel = DataContext as IMainWindowViewModel;
+            ((IHandleAccountSwitch)DataContext).OnAccountSwitch();
         }
 
         private void ClearTradesGridItemColor()
@@ -48,7 +45,18 @@ namespace TradeStats.Views
             }
         }
 
-        private void AddToMergeBtn_Click(object sender, RoutedEventArgs e) => SetTradesGridSelectedItemColor(itemToMergeBrush);
+        private void AddToMergeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedDto = (TradeMergeItemDto)TradesDataGrid.SelectedItem;
+            var mergeTabValidations = _viewModel.TradesMergeTab as ITradesMergeTabValidations;
+
+            if (mergeTabValidations.IsAddToMergePossibe(selectedDto))
+            {
+                // Setting color for selected and added for merge row
+                var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(TradesDataGrid.SelectedItem);
+                row.Background = _itemToMergeBrush;
+            }
+        }
 
         private void UncheckAllBtn_Click(object sender, RoutedEventArgs e) => ClearTradesGridItemColor();
 

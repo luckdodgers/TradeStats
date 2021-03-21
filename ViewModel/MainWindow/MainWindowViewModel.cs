@@ -20,7 +20,7 @@ namespace TradeStats.ViewModel.MainWindow
 {
     using static WindowExtensions;
 
-    class MainWindowViewModel : BindableBase, IHandleAccountSwitch, IDisposable
+    class MainWindowViewModel : BindableBase, IMainWindowViewModel, IHandleAccountSwitch, IDisposable
     {
         private readonly IUnityContainer _container;
         private readonly ICsvImport<OpenTrade> _dataSource;

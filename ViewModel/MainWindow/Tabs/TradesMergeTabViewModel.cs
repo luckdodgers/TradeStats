@@ -16,7 +16,7 @@ using TradeStats.ViewModel.Interfaces;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
-    class TradesMergeTabViewModel : BindableBase, IHandleAccountSwitch, IDisposable
+    public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, IHandleAccountSwitch, IDisposable
     {
         public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
@@ -99,6 +99,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             SelectedCurrency = CurrenciesList[0];
         }
 
+        public bool IsAddToMergePossibe(TradeMergeItemDto tradeDto) => !_selectedTradesToMerge.Contains(tradeDto) && !_selectedTradesToMerge.Any(t => t.Side == tradeDto.Side);
+
         public async void OnAccountSwitch()
         {
             if (_accountCache.CurrentAccount != null)
@@ -133,17 +135,13 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
             _allOpenTradeDtoList = _mapper.Map<IReadOnlyList<OpenTrade>, IReadOnlyList<TradeMergeItemDto>>(_allOpenTrades);
 
-            TableOpenTrades.Clear();
-            TableOpenTrades.AddRange(_allOpenTradeDtoList);
+            TableOpenTrades.SetWithDataGridSorting(_allOpenTradeDtoList);
         }
 
         private void OnCurrencySelect(string selectedCurrency)
         {
             if (selectedCurrency == CurrencyOrderRule.AnyCurrencyString)
-            {
-                TableOpenTrades.Clear();
-                TableOpenTrades.AddRange(_allOpenTradeDtoList);
-            }
+                TableOpenTrades.SetWithDataGridSorting(_allOpenTradeDtoList);
 
             else
             {
@@ -151,8 +149,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 var filteredOpenTrades = _allOpenTrades.Where(t => t.FirstCurrency == selectedCurrencyEnum);
                 var filteredOpenTradesDto = _allOpenTradeDtoList.Where(t => filteredOpenTrades.Select(ft => ft.Id).Any(id => id == t.Id));
 
-                TableOpenTrades.Clear();
-                TableOpenTrades.AddRange(filteredOpenTradesDto);              
+                TableOpenTrades.SetWithDataGridSorting(filteredOpenTradesDto);            
             }
         }
 
@@ -160,7 +157,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         {
             var tradeDto = tradeToAdd as TradeMergeItemDto;
 
-            if (_selectedTradesToMerge.Contains(tradeDto) || _selectedTradesToMerge.Any(t => t.Side == tradeDto.Side))
+            if (!IsAddToMergePossibe(tradeDto))
                 return;
 
             _selectedTradesToMerge.Add(tradeDto);
@@ -176,7 +173,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private async Task UncheckAll()
         {
-
+            
         }
 
         public void Dispose()
