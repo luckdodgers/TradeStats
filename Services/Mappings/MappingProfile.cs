@@ -12,6 +12,8 @@ namespace TradeStats.Services.Mappings
         {
             CreateMap<OpenTrade, TradeMergeItemDto>()
                 .ForMember(dto => dto.Date, dom => dom.MapFrom(src => src.Datetime))
+                .ForMember(dto => dto.FirstCurrency, dom => dom.MapFrom(src => src.FirstCurrency))
+                .ForMember(dto => dto.SecondCurrency, dom => dom.MapFrom(src => src.SecondCurrency))
                 .ForMember(dto => dto.Pair, dom => dom.MapFrom(src => src.FirstCurrency + "/" + src.SecondCurrency))
                 .ForMember(dto => dto.Price, dom => dom.MapFrom(src => src.Price.ToTableViewString()))
                 .ForMember(dto => dto.Sum, dom => dom.MapFrom(src => src.Sum.ToTableViewString()))

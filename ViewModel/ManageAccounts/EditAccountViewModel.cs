@@ -217,11 +217,11 @@ namespace TradeStats.ViewModel.ManageAccounts
 
             if (!IsNewFeeStartsFromNextTrade)
             {
-                var test = await _context.OpenTrades
+                var closedTradesWithNewFee = await _context.ClosedTrades
                     .Where(t => t.AccountId == account.Id && t.Datetime >= NewFeeStartDate)
                     .ToListAsync();
 
-                test.ForEach(t => t.SetFee(account.Fee));
+                closedTradesWithNewFee.ForEach(t => t.SetNewTraderFee(account.Fee));
             }
 
             await _context.SaveChangesAsync();

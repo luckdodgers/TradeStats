@@ -1,5 +1,4 @@
 ﻿using System;
-using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Models.Domain
 {
@@ -30,26 +29,33 @@ namespace TradeStats.Models.Domain
         public decimal Price { get; }
         public decimal Amount { get; private set; }
         public decimal Sum { get; private set; }
-        public decimal Fee { get; private set; }
+        public decimal Fee { get; }
         public bool IsClosed { get; private set; }
 
-        /// <returns>closeAmount residue</returns>
-        public decimal SubstractCloseAmount(decimal closeAmount)
+        // Returns merge amount
+        public decimal MergeWith(OpenTrade secondTrade)
         {
-            if (Amount > closeAmount)
+            decimal mergeAmount;
+
+            if (Amount > secondTrade.Amount)
             {
-                Amount -= closeAmount;
+                mergeAmount = secondTrade.Amount;
+
+                Amount -= secondTrade.Amount;
+                secondTrade.SetResidue(decimal.Zero);
                 Sum = Price * Amount;
-                return 0;
             }
 
-            var closeAmountResidue = closeAmount - Amount;
+            else
+            {
+                mergeAmount = Amount;
 
-            Amount = 0;
-            Sum = 0;
-            IsClosed = true;
+                var secondTradeResidue = secondTrade.Amount - Amount;
+                secondTrade.SetResidue(secondTradeResidue);
+                SetResidue(decimal.Zero);
+            }
 
-            return closeAmountResidue;
+            return mergeAmount;
         }
 
         public void SetResidue(decimal newResidue)
@@ -57,11 +63,9 @@ namespace TradeStats.Models.Domain
             Amount = newResidue;
             Sum = Price * Amount;
 
-            if (newResidue == 0)
+            if (newResidue == decimal.Zero)
                 IsClosed = true;
         }
-
-        public void SetFee(decimal newFee) => Fee = newFee;
 
         public bool IsEqualByValue(OpenTrade comparingTrade)
         {

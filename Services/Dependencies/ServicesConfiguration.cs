@@ -37,6 +37,7 @@ namespace TradeStats.Infastructure
                 cfg.AddProfile(new MappingProfile());
             });
 
+            container.RegisterInstance<IConfigurationProvider>(config);
             container.RegisterInstance<IMapper>(config.CreateMapper());
 
             // Settings

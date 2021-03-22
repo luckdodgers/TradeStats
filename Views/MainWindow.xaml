@@ -75,7 +75,8 @@
                                         </Button>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-                                        <Button x:Name="MergeTradesBtn" Command="{Binding MergeCommand}" Click="MergeTradesBtn_Click" Height="35" Width="85" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                        <Button x:Name="MergeTradesBtn" Command="{Binding MergeCommand}" IsEnabled="{Binding IsMergeBtnEnabled}" Click="MergeTradesBtn_Click" 
+                                                Height="35" Width="85" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                                             <TextBlock Text="Merge" FontSize="14" FontWeight="DemiBold"></TextBlock>
                                         </Button>
                                     </StackPanel>

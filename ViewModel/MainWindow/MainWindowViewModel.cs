@@ -31,6 +31,7 @@ namespace TradeStats.ViewModel.MainWindow
         private readonly ICachedData<Account> _curCachedAccount;
         private readonly ITradesContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfigurationProvider _configProvider;
 
         private event Action _TradesImported;
 
@@ -46,8 +47,8 @@ namespace TradeStats.ViewModel.MainWindow
         }
         #endregion   
 
-        public MainWindowViewModel(IUnityContainer container, ICsvImport<OpenTrade> dataSource, IOpenTradesLoader openTradesLoader, 
-            ICachedData<Account> curCachedAccount, ITradesContext context, IMapper mapper)
+        public MainWindowViewModel(IUnityContainer container, ICsvImport<OpenTrade> dataSource, IOpenTradesLoader openTradesLoader,
+            ICachedData<Account> curCachedAccount, ITradesContext context, IMapper mapper, IConfigurationProvider configProvider)
         {
             _container = container;
             _dataSource = dataSource;
@@ -55,15 +56,15 @@ namespace TradeStats.ViewModel.MainWindow
             _curCachedAccount = curCachedAccount;
             _context = context;
             _mapper = mapper;
+            _configProvider = configProvider;
 
-            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _context, _mapper);
+            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _context, _mapper, _configProvider);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
             _TradesImported += _tradesMergeTab.OnTradesReload;
 
             OpenManageAccountsWindowCommand = new DelegateCommand(OpenManageAccountsWindow);
             OpenImportWindowCommand = new DelegateCommand(async () => await OpenImportWindow());
-            
         }
 
         public void OnTradesReload()
@@ -93,16 +94,6 @@ namespace TradeStats.ViewModel.MainWindow
             {
                 var filePath = openFileDialog.FileName;
                 loadedTrades = await _dataSource.LoadData(filePath);
-                //try
-                //{
-                    
-                //}
-
-                //catch (System.IO.IOException)
-                //{
-                //    MessageBox.Show("Please, close importing file and try again", "Error. File opened.");
-                //    return;
-                //}
                 
                 await _openTradesLoader.UpdateOpenTrades(loadedTrades);
 

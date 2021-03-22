@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -8,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TradeStats.Extensions;
 using TradeStats.Models.Domain;
 using TradeStats.Models.Rules;
 using TradeStats.Services.Interfaces;
@@ -22,7 +24,6 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
 
         private IReadOnlyList<TradeMergeItemDto> _allOpenTradeDtoList = new List<TradeMergeItemDto>();
-        private IReadOnlyList<OpenTrade> _allOpenTrades = new List<OpenTrade>();
 
         #region Commands
         public ICommand MergeCommand { get; private set; }
@@ -81,16 +82,18 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         private readonly ICachedData<Account> _accountCache;
         private readonly ITradesContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfigurationProvider _configProvider;
 
         private List<TradeMergeItemDto> _selectedTradesToMerge = new();
 
         public ICommand AddToMergeCommand { get; private set; }
 
-        public TradesMergeTabViewModel(ICachedData<Account> accountCache, ITradesContext context, IMapper mapper)
+        public TradesMergeTabViewModel(ICachedData<Account> accountCache, ITradesContext context, IMapper mapper, IConfigurationProvider configProvider)
         {
             _accountCache = accountCache;
             _context = context;
             _mapper = mapper;
+            _configProvider = configProvider;
 
             MergeCommand = new DelegateCommand(async () => await Merge()).ObservesCanExecute(() => IsMergeBtnEnabled);
             UncheckAllCommand = new DelegateCommand(async () => await UncheckAll());
@@ -123,6 +126,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             }
 
             await ReloadTableOnAccountSwitch();
+
+            OnCurrencySelect(SelectedCurrency);
         }
 
         private async Task ReloadTableOnAccountSwitch()
@@ -133,12 +138,10 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 return;
             }
 
-            _allOpenTrades = await _context.OpenTrades
+            _allOpenTradeDtoList = await _context.OpenTrades
                 .AsNoTracking()
                 .Where(t => t.AccountId == _accountCache.CurrentAccount.Id && !t.IsClosed)
-                .ToListAsync();
-
-            _allOpenTradeDtoList = _mapper.Map<IReadOnlyList<OpenTrade>, IReadOnlyList<TradeMergeItemDto>>(_allOpenTrades);
+                .ProjectToListAsync<TradeMergeItemDto>(_configProvider);             
 
             TableOpenTrades.SetWithDataGridSorting(_allOpenTradeDtoList);
         }
@@ -150,10 +153,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
             else
             {
-                var selectedCurrencyEnum = Enum.Parse<Currency>(selectedCurrency);
-                var filteredOpenTrades = _allOpenTrades.Where(t => t.FirstCurrency == selectedCurrencyEnum);
-                var filteredOpenTradesDto = _allOpenTradeDtoList.Where(t => filteredOpenTrades.Select(ft => ft.Id).Any(id => id == t.Id));
-
+                var filteredOpenTradesDto = _allOpenTradeDtoList.Where(t => t.FirstCurrency == Enum.Parse<Currency>(selectedCurrency));
                 TableOpenTrades.SetWithDataGridSorting(filteredOpenTradesDto);            
             }
         }
@@ -169,11 +169,30 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             MergingTradesCounter = $"{_selectedTradesToMerge.Count}/2";
 
             IsAddBtnEnabled = _selectedTradesToMerge.Count < 2;
+            IsMergeBtnEnabled = _selectedTradesToMerge.Count == 2;
         }
 
         private async Task Merge()
         {
-            
+            decimal closedTradeAmount;
+            ClosedTrade closedTrade = null;
+
+            var tradesToMerge = await _context.OpenTrades
+                .Where(ot => _selectedTradesToMerge.Select(mt => mt.Id).Contains(ot.Id))
+                .ToListAsync();
+
+            if (tradesToMerge.Count == 2)
+            {
+                closedTradeAmount = tradesToMerge[0].MergeWith(tradesToMerge[1]);
+                closedTrade = ClosedTrade.Create(tradesToMerge[0], tradesToMerge[1], closedTradeAmount, _accountCache.CurrentAccount.Fee);
+            }
+
+            _context.OpenTrades.RemoveRange(tradesToMerge.Where(t => t.IsClosed));
+            await _context.ClosedTrades.AddAsync(closedTrade);
+
+            await _context.SaveChangesAsync();
+
+            OnTradesReload();
         }
 
         private async Task UncheckAll()

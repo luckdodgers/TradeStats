@@ -2,7 +2,6 @@
 using CsvHelper.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,6 +18,7 @@ namespace TradeStats.Services.DataImport
 {
     class CsvDataImport : ICsvImport<OpenTrade>, IDisposable
     {
+        private FileStream _fileStream;
         private StreamReader _streamReader;
         private CsvReader _csvReader;
 
@@ -42,12 +42,11 @@ namespace TradeStats.Services.DataImport
                 PrepareHeaderForMatch = args => args.Header.ToLower(),
             };
 
-            //var path = Path.Combine(Directory.GetCurrentDirectory(), "trades.csv");
-
             if (!File.Exists(path))
                 throw new FileNotFoundException("File \"trades.csv\" not found in current directory.");
 
-            _streamReader = new StreamReader(path);
+            _fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            _streamReader = new StreamReader(_fileStream);
             _csvReader = new CsvReader(_streamReader, config);
 
             return await Task.Run(() => _csvReader.GetRecordsAsync<RawCsvData>());
@@ -93,6 +92,7 @@ namespace TradeStats.Services.DataImport
 
         public void Dispose()
         {
+            _fileStream?.Dispose();
             _streamReader?.Dispose();
             _csvReader?.Dispose();
         }

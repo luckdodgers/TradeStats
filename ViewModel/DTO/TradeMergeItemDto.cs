@@ -7,6 +7,8 @@ namespace TradeStats.ViewModel.DTO
     {
         public long Id { get; set; }
         public DateTime Date { get; set; }
+        public Currency FirstCurrency { get; set; }
+        public Currency SecondCurrency { get; set; }
         public string Pair { get; set; }
         public TradeSide Side { get; set; }
         public string Price { get; set; }

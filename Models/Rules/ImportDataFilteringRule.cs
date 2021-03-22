@@ -14,7 +14,7 @@ namespace TradeStats.Models.Rules
             [Currency.USD] = Currency.USDT,
         };
 
-        public static IEnumerable<OpenTrade> RemoveFiatExchanges(this IEnumerable<OpenTrade> trades)
+        public static List<OpenTrade> RemoveFiatExchanges(this IEnumerable<OpenTrade> trades)
         {
             var tradesToRemove = trades.Where(t => _pairsToRemove.Keys.Any(key => key == t.FirstCurrency) && _pairsToRemove[t.FirstCurrency] == t.SecondCurrency);
             var tradesList = trades.ToList();

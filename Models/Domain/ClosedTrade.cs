@@ -9,7 +9,7 @@ namespace TradeStats.Models.Domain
         protected ClosedTrade() { }
 
         public ClosedTrade(int accountId, DateTime datetime, Currency buyCurrency, Currency sellCurrency,
-            decimal openPrice, decimal closePrice, decimal amount, decimal roundFee)
+            decimal openPrice, decimal closePrice, decimal amount, decimal roundFee, decimal traderFee)
         {
             AccountId = accountId;
             Datetime = datetime;
@@ -18,7 +18,8 @@ namespace TradeStats.Models.Domain
             OpenPrice = openPrice;
             ClosePrice = closePrice;
             Amount = amount;
-            RoundFee = roundFee;
+            ExchangeRoundFee = roundFee;
+            TraderFee = traderFee;
         }
 
         public long Id { get; }
@@ -29,9 +30,10 @@ namespace TradeStats.Models.Domain
         public decimal OpenPrice { get; }
         public decimal ClosePrice { get; }
         public decimal Amount { get; }
-        public decimal RoundFee { get; }
+        public decimal ExchangeRoundFee { get; }
+        public decimal TraderFee { get; private set; }
 
-        public static ClosedTrade Create(OpenTrade openTrade, OpenTrade closeTrade)
+        public static ClosedTrade Create(OpenTrade openTrade, OpenTrade closeTrade, decimal tradeAmount, decimal currentTraderFee)
         {
             return new ClosedTrade
                 (
@@ -41,9 +43,12 @@ namespace TradeStats.Models.Domain
                     sellCurrency: closeTrade.FirstCurrency,
                     openPrice: openTrade.Price,
                     closePrice: closeTrade.Price,
-                    amount: openTrade.Amount,
-                    roundFee: openTrade.Fee + closeTrade.Fee
+                    amount: tradeAmount,
+                    roundFee: openTrade.Fee + closeTrade.Fee,
+                    traderFee: currentTraderFee
                 );
         }
+
+        public void SetNewTraderFee(decimal newFee) => TraderFee = newFee;
     }
 }
