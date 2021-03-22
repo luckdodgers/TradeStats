@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using TradeStats.Extensions;
 using TradeStats.ViewModel.DTO;
@@ -33,7 +28,7 @@ namespace TradeStats.Views
             DataContext = container.Resolve<MainWindowViewModel>();
 
             _viewModel = DataContext as IMainWindowViewModel;
-            ((IHandleAccountSwitch)DataContext).OnAccountSwitch();
+            ((ITradesReloadHandler)DataContext).OnTradesReload();
         }
 
         private void ClearTradesGridItemColor()

@@ -8,7 +8,7 @@ using TradeStats.ViewModel.DTO;
 
 namespace TradeStats.Models.Rules
 {
-    public static class TradesMergeDataGridItemsOrder
+    public static class TradesMergeDataGridOrderRule
     {
         public static void SetWithDataGridSorting(this ObservableCollection<TradeMergeItemDto> collection, IEnumerable<TradeMergeItemDto> newValue)
         {

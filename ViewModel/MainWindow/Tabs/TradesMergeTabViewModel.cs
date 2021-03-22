@@ -16,7 +16,7 @@ using TradeStats.ViewModel.Interfaces;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
-    public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, IHandleAccountSwitch, IDisposable
+    public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, ITradesReloadHandler, IDisposable
     {
         public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
@@ -101,14 +101,19 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         public bool IsAddToMergePossibe(TradeMergeItemDto tradeDto) => !_selectedTradesToMerge.Contains(tradeDto) && !_selectedTradesToMerge.Any(t => t.Side == tradeDto.Side);
 
-        public async void OnAccountSwitch()
+        public async void OnTradesReload()
         {
             if (_accountCache.CurrentAccount != null)
             {
-                var accountTrades = _context.OpenTrades.Where(t => t.AccountId == _accountCache.CurrentAccount.Id);
+                var accountOpenTrades = _context.OpenTrades
+                    .Where(t => t.AccountId == _accountCache.CurrentAccount.Id);
 
-                LastTradeDate = accountTrades.Any() ?
-                    accountTrades.Max(t => t.Datetime).ToString("dd'.'MM'.'yyyy")
+                var accountClosedTradesDates = _context.ClosedTrades
+                    .Where(t => t.AccountId == _accountCache.CurrentAccount.Id)
+                    .Select(t => t.Datetime);
+
+                LastTradeDate = accountOpenTrades.Any() ?
+                    accountOpenTrades.Select(t => t.Datetime).Concat(accountClosedTradesDates).Max().ToString("dd'.'MM'.'yyyy")
                     : "No trades so far";
             }
 
@@ -178,7 +183,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         public void Dispose()
         {
-            _accountCache.CacheUpdated -= OnAccountSwitch;
+            _accountCache.CacheUpdated -= OnTradesReload;
         }
     }
 }

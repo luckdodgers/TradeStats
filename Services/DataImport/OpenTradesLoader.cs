@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TradeStats.Models.Domain;
 using TradeStats.Services.Interfaces;
 using TradeStats.Models.Common.Comparers;
+using TradeStats.Models.Rules;
 
 namespace TradeStats.Services.DataImport
 {
@@ -30,7 +31,9 @@ namespace TradeStats.Services.DataImport
                 .Where(t => t.AccountId == _curAccountCache.CurrentAccount.Id && t.Datetime >= startDate && t.Datetime <= endDate)
                 .ToListAsync();
 
-            var accountsToAdd = importedTrades.Except(existingAccountTrades, new OpenTradeValueComparer());
+            var accountsToAdd = importedTrades
+                .RemoveFiatExchanges()
+                .Except(existingAccountTrades, new OpenTradeValueComparer());
 
             _context.OpenTrades.AddRange(accountsToAdd);
 

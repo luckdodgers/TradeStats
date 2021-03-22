@@ -20,8 +20,11 @@ namespace TradeStats.ViewModel.MainWindow
 {
     using static WindowExtensions;
 
-    class MainWindowViewModel : BindableBase, IMainWindowViewModel, IHandleAccountSwitch, IDisposable
+    class MainWindowViewModel : BindableBase, IMainWindowViewModel, ITradesReloadHandler, IDisposable
     {
+        private readonly TradesMergeTabViewModel _tradesMergeTab;
+        public TradesMergeTabViewModel TradesMergeTab => _tradesMergeTab;
+
         private readonly IUnityContainer _container;
         private readonly ICsvImport<OpenTrade> _dataSource;
         private readonly IOpenTradesLoader _openTradesLoader;
@@ -29,8 +32,7 @@ namespace TradeStats.ViewModel.MainWindow
         private readonly ITradesContext _context;
         private readonly IMapper _mapper;
 
-        private readonly TradesMergeTabViewModel _tradesMergeTab;
-        public TradesMergeTabViewModel TradesMergeTab => _tradesMergeTab;
+        private event Action _TradesImported;
 
         public ICommand OpenManageAccountsWindowCommand { get; private set; }
         public ICommand OpenImportWindowCommand { get; private set; }
@@ -55,16 +57,18 @@ namespace TradeStats.ViewModel.MainWindow
             _mapper = mapper;
 
             _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _context, _mapper);
-            _curCachedAccount.CacheUpdated += OnAccountSwitch;
+
+            _curCachedAccount.CacheUpdated += OnTradesReload;
+            _TradesImported += _tradesMergeTab.OnTradesReload;
 
             OpenManageAccountsWindowCommand = new DelegateCommand(OpenManageAccountsWindow);
             OpenImportWindowCommand = new DelegateCommand(async () => await OpenImportWindow());
             
         }
 
-        public async void OnAccountSwitch()
+        public void OnTradesReload()
         {
-            TradesMergeTab.OnAccountSwitch();
+            TradesMergeTab.OnTradesReload();
 
             IsAccountImportMenuItemEnabled = _curCachedAccount.CurrentAccount != null;
         }
@@ -101,6 +105,8 @@ namespace TradeStats.ViewModel.MainWindow
                 //}
                 
                 await _openTradesLoader.UpdateOpenTrades(loadedTrades);
+
+                _TradesImported?.Invoke();
             }
         }
 
