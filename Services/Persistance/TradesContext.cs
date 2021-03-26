@@ -16,7 +16,7 @@ namespace TradeStats.Infastructure.Persistance
         public DbSet<Account> Accounts { get; set; }
 
         public TradesContext()
-        {
+        {            
         }
 
         public TradesContext(DbContextOptions<TradesContext> options) : base(options)

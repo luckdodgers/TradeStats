@@ -43,8 +43,14 @@ namespace TradeStats.Infastructure
             // Settings
             container.RegisterSingleton<ISettingsProvider, JsonSettingsProvider>();
 
+            // Cache
+            container.RegisterSingleton<CurrentAccountCache>();
+            container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
+            container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
+
             // DbContext
             container.RegisterType<ITradesContext, TradesContext>();
+            container.RegisterType<ICurrentAccountTradeContext, CurrentAccountTradeContext>();
 
             // Windows
             container.RegisterType<MainWindow>();
@@ -53,11 +59,6 @@ namespace TradeStats.Infastructure
             // Viewmodels
             container.RegisterType<MainWindowViewModel>();
             container.RegisterType<ManageAccountsViewModel>();
-
-            // Cache
-            container.RegisterSingleton<CurrentAccountCache>();
-            container.RegisterFactory<ICachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
-            container.RegisterFactory<IUpdateCachedData<Account>>((obj) => container.Resolve<CurrentAccountCache>());
 
             // Data load
             container.RegisterType<ICsvImport<OpenTrade>, CsvDataImport>();

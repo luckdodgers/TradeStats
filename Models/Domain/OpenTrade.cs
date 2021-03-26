@@ -7,7 +7,7 @@ namespace TradeStats.Models.Domain
         protected OpenTrade() { }
 
         public OpenTrade(int accountId, DateTime datetime, TradeSide type, Currency firstCurrency, Currency secondCurrency,
-            decimal price, decimal amount, decimal sum, decimal fee)
+            decimal price, decimal amount, decimal sum, Currency feeCurency, decimal fee)
         {
             AccountId = accountId;
             Datetime = datetime;
@@ -17,6 +17,7 @@ namespace TradeStats.Models.Domain
             Price = price;
             Amount = amount;
             Sum = sum;
+            FeeCurrency = feeCurency;
             Fee = fee;
         }
 
@@ -29,6 +30,7 @@ namespace TradeStats.Models.Domain
         public decimal Price { get; }
         public decimal Amount { get; private set; }
         public decimal Sum { get; private set; }
+        public Currency FeeCurrency { get; private set; }
         public decimal Fee { get; }
         public bool IsClosed { get; private set; }
 
@@ -57,6 +59,8 @@ namespace TradeStats.Models.Domain
 
             return mergeAmount;
         }
+
+        public decimal GetPotentialMergeAmount(OpenTrade secondTrade) => Amount > secondTrade.Amount ? secondTrade.Amount : Amount;
 
         public void SetResidue(decimal newResidue)
         {

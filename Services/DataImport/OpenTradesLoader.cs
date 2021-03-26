@@ -13,10 +13,10 @@ namespace TradeStats.Services.DataImport
 {
     class OpenTradesLoader : IOpenTradesLoader
     {
-        private readonly ITradesContext _context;
+        private readonly ICurrentAccountTradeContext _context;
         private readonly ICachedData<Account> _curAccountCache;
 
-        public OpenTradesLoader(ITradesContext context, ICachedData<Account> curAccountCache)
+        public OpenTradesLoader(ICurrentAccountTradeContext context, ICachedData<Account> curAccountCache)
         {
             _context = context;
             _curAccountCache = curAccountCache;
@@ -24,18 +24,18 @@ namespace TradeStats.Services.DataImport
 
         public async Task UpdateOpenTrades(IEnumerable<OpenTrade> importedTrades)
         {
-            var startDate = importedTrades.Min(t => t.Datetime);
-            var endDate = importedTrades.Max(t => t.Datetime);
+            if (_context.CurrentAccountOpenTrades.Any() || _context.CurrentAccountClosedTrades.Any())
+            {
+                var latestExistingDate = _context.CurrentAccountOpenTrades
+                .Select(t => t.Datetime)
+                .Concat(_context.TradesContext.ClosedTrades.Select(t => t.Datetime))
+                .Max();
 
-            var existingAccountTrades = await _context.OpenTrades
-                .Where(t => t.AccountId == _curAccountCache.CurrentAccount.Id && t.Datetime >= startDate && t.Datetime <= endDate)
-                .ToListAsync();
-
-            var accountsToAdd = importedTrades
-                .RemoveFiatExchanges()
-                .Except(existingAccountTrades, new OpenTradeValueComparer());
-
-            _context.OpenTrades.AddRange(accountsToAdd);
+                importedTrades = importedTrades.RemoveFiatExchanges()
+                    .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)); // Remove imported trades that are earlier or equal than existing trades in DB
+            }
+            
+            else _context.TradesContext.OpenTrades.AddRange(importedTrades);
 
             await _context.SaveChangesAsync();
         }

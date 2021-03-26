@@ -14,6 +14,14 @@ namespace TradeReportsConverter.Extensions
             return result.Contains('.') ? result.TrimEnd('0').Replace('.', ',').TrimEnd(',') : result;
         }
 
+        public static string TwoDigitsAfterDot(this decimal number)
+        {
+            number = decimal.Round(number, 2);
+            var result = number.ToString();
+
+            return result.Contains(',') ? result.TrimEnd('0') : result;
+        }
+
         private static decimal RoundNumber(decimal number) =>
 
         number switch

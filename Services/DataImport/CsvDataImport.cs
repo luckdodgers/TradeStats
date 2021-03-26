@@ -68,6 +68,7 @@ namespace TradeStats.Services.DataImport
                         price: entry.Price,
                         amount: entry.Vol,
                         sum: entry.Cost,
+                        feeCurency: Currency.USD,
                         fee: entry.Fee
                     );
 

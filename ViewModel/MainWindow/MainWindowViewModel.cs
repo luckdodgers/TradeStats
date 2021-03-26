@@ -29,9 +29,8 @@ namespace TradeStats.ViewModel.MainWindow
         private readonly ICsvImport<OpenTrade> _dataSource;
         private readonly IOpenTradesLoader _openTradesLoader;
         private readonly ICachedData<Account> _curCachedAccount;
-        private readonly ITradesContext _context;
-        private readonly IMapper _mapper;
         private readonly IConfigurationProvider _configProvider;
+        private readonly ICurrentAccountTradeContext _curAccountContext;
 
         private event Action _TradesImported;
 
@@ -48,17 +47,16 @@ namespace TradeStats.ViewModel.MainWindow
         #endregion   
 
         public MainWindowViewModel(IUnityContainer container, ICsvImport<OpenTrade> dataSource, IOpenTradesLoader openTradesLoader,
-            ICachedData<Account> curCachedAccount, ITradesContext context, IMapper mapper, IConfigurationProvider configProvider)
+            ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext)
         {
             _container = container;
             _dataSource = dataSource;
             _openTradesLoader = openTradesLoader;
             _curCachedAccount = curCachedAccount;
-            _context = context;
-            _mapper = mapper;
             _configProvider = configProvider;
+            _curAccountContext = curAccountContext;
 
-            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _context, _mapper, _configProvider);
+            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
             _TradesImported += _tradesMergeTab.OnTradesReload;
@@ -84,8 +82,6 @@ namespace TradeStats.ViewModel.MainWindow
 
         private async Task OpenImportWindow()
         {
-            IEnumerable<OpenTrade> loadedTrades = null;
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "CSV Files (*.csv)|*.csv";
             openFileDialog.RestoreDirectory = true;          
@@ -93,7 +89,7 @@ namespace TradeStats.ViewModel.MainWindow
             if (openFileDialog.ShowDialog() == true)
             {
                 var filePath = openFileDialog.FileName;
-                loadedTrades = await _dataSource.LoadData(filePath);
+                var loadedTrades = await _dataSource.LoadData(filePath);
                 
                 await _openTradesLoader.UpdateOpenTrades(loadedTrades);
 
