@@ -4,7 +4,7 @@ using TradeStats.Services.Interfaces;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
-    class ManageAccountsViewModel : BaseViewModel, IDisposable
+    class ManageAccountsViewModel : ValidatableViewModel, IDisposable
     {
         private readonly ITradesContext _tradesContext;
         private readonly IUpdateCachedData<Account> _updateCachedData;

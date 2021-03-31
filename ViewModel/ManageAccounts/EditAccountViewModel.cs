@@ -15,7 +15,7 @@ using TradeStats.Services.Validations;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
-    class EditAccountViewModel : BaseViewModel
+    class EditAccountViewModel : ValidatableViewModel
     {
         public ObservableCollection<string> ExistingAccounts { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> EditAccountExchange { get; set; } = new ObservableCollection<string>();

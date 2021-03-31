@@ -19,7 +19,7 @@ using TradeReportsConverter.Extensions;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
-    public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, ITradesReloadHandler, IDisposable
+    public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, ITradesReloadHandler
     {
         public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
@@ -253,11 +253,6 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 ProfitPerTradeText = string.Empty;
                 AbsProfitText = string.Empty;
             }
-        }
-
-        public void Dispose()
-        {
-            _accountCache.CacheUpdated -= OnTradesReload;
         }
     }
 }

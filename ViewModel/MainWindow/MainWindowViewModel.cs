@@ -20,10 +20,13 @@ namespace TradeStats.ViewModel.MainWindow
 {
     using static WindowExtensions;
 
-    class MainWindowViewModel : BindableBase, IMainWindowViewModel, ITradesReloadHandler, IDisposable
+    class MainWindowViewModel : BindableBase, IMainWindowViewModel, ITradesReloadHandler
     {
         private readonly TradesMergeTabViewModel _tradesMergeTab;
         public TradesMergeTabViewModel TradesMergeTab => _tradesMergeTab;
+
+        private readonly ClosedTradesTabViewModel _closedTradesTab;
+        public ClosedTradesTabViewModel ClosedTradesTab => _closedTradesTab;
 
         private readonly IUnityContainer _container;
         private readonly ICsvImport<OpenTrade> _dataSource;
@@ -57,9 +60,11 @@ namespace TradeStats.ViewModel.MainWindow
             _curAccountContext = curAccountContext;
 
             _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
+            _closedTradesTab = new ClosedTradesTabViewModel();
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
-            _TradesImported += _tradesMergeTab.OnTradesReload;
+            _TradesImported += TradesMergeTab.OnTradesReload;
+            _TradesImported += ClosedTradesTab.OnTradesReload;
 
             OpenManageAccountsWindowCommand = new DelegateCommand(OpenManageAccountsWindow);
             OpenImportWindowCommand = new DelegateCommand(async () => await OpenImportWindow());
@@ -95,11 +100,6 @@ namespace TradeStats.ViewModel.MainWindow
 
                 _TradesImported?.Invoke();
             }
-        }
-
-        public void Dispose()
-        {
-            
         }
     }
 }

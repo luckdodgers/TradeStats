@@ -12,7 +12,7 @@ using TradeStats.Services.Validations;
 
 namespace TradeStats.ViewModel.ManageAccounts
 {
-    class NewAccountViewModel : BaseViewModel
+    class NewAccountViewModel : ValidatableViewModel
     {
         public ObservableCollection<string> NewAccountExchange { get; set; } = new ObservableCollection<string>();
         public event Action<string> NewAccountAdd;

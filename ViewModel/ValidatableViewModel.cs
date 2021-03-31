@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace TradeStats.ViewModel
 {
-    abstract class BaseViewModel : BindableBase, INotifyDataErrorInfo
+    abstract class ValidatableViewModel : BindableBase, INotifyDataErrorInfo
     {
         public bool HasErrors => _errorsDict.Values.SelectMany(el => el).Any();
 
