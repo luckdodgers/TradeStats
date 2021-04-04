@@ -11,7 +11,7 @@ namespace TradeStats.Models.Rules
     {
         public static readonly string AnyCurrencyString = "- All -";
 
-        public static List<string> GetCurrenciesForCombobox(this IEnumerable<Currency> currencies)
+        public static List<string> GetStringCurrenciesForCombobox(this IEnumerable<Currency> currencies)
         {
             var filteredCollection = currencies.Except(new List<Currency>() { Currency.USDT, Currency.USD }).ToList();
             var orderedList = new List<Currency>() { Currency.BTC, Currency.ETH };

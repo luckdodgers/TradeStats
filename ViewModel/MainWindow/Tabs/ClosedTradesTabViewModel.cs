@@ -1,12 +1,18 @@
-﻿using Prism.Mvvm;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Prism.Commands;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using TradeStats.Extensions;
 using TradeStats.Models.Domain;
 using TradeStats.Models.Rules;
+using TradeStats.Services.Interfaces;
 using TradeStats.ViewModel.DTO;
 using TradeStats.ViewModel.Interfaces;
 
@@ -14,8 +20,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 {
     class ClosedTradesTabViewModel : BindableBase, ITradesReloadHandler
     {
-        public ObservableCollection<ClosedPriceItemDto> TableClosedTrades { get; set; } = new ObservableCollection<ClosedPriceItemDto>();
-        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
+        public ObservableCollection<ClosedTradeItemDto> TableClosedTrades { get; set; } = new ObservableCollection<ClosedTradeItemDto>();
+        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox();
 
         #region SelectedCurrency
         private string _selectedCurrency;
@@ -56,9 +62,9 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         }
         #endregion
 
-        #region EndOnToLastTrade
+        #region EndOnLastTrade
         private bool _endOnLastTrade;
-        public bool EndOnToLastTrade
+        public bool EndOnLastTrade
         {
             get => _endOnLastTrade;
             set => SetProperty(ref _endOnLastTrade, value);
@@ -110,9 +116,37 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         }
         #endregion
 
-        public void OnTradesReload()
+        private readonly ICurrentAccountTradeContext _context;
+        private readonly IConfigurationProvider _configProvider;
+
+        public ICommand LoadTradesCommand { get; private set; }
+
+        public ClosedTradesTabViewModel(ICurrentAccountTradeContext context, IConfigurationProvider configProvider)
         {
-            throw new NotImplementedException();
+            _context = context;
+            _configProvider = configProvider;
+
+            LoadTradesCommand = new DelegateCommand(async () => await LoadTrades());
+
+            SelectedCurrency = CurrenciesList[0];
+        }
+
+        public async void OnTradesReload()
+        {
+            
+        }
+
+        private async Task LoadTrades()
+        {
+            var closedTrades = _context.CurrentAccountClosedTrades
+                .Where(t => t.FirstCurrency == Enum.Parse<Currency>(SelectedCurrency));
+
+            closedTrades = StartFromFirstTrade ? closedTrades : closedTrades.Where(t => t.Datetime >= StartDate);
+            closedTrades = EndOnLastTrade ? closedTrades : closedTrades.Where(t => t.Datetime <= EndDate);
+
+            var closedTradesList = await closedTrades.ProjectToListAsync<ClosedTradeItemDto>(_configProvider);
+
+            TableClosedTrades.SetWithDataGridSorting(closedTradesList);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
     public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, ITradesReloadHandler
     {
         public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
-        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetCurrenciesForCombobox();
+        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox();
 
         #region Commands
         public ICommand MergeCommand { get; private set; }
@@ -244,8 +244,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         {
             if (_closingTrade != null)
             {
-                ProfitPerTradeText = _closingTrade.GetPercentageProfit().TwoDigitsAfterDot();
-                AbsProfitText = _closingTrade.GetAbsProfit().TwoDigitsAfterDot();
+                ProfitPerTradeText = _closingTrade.GetPercentageProfit().TwoDigitsAfterDotRoundUp();
+                AbsProfitText = _closingTrade.GetAbsProfit().TwoDigitsAfterDotRoundUp();
             }
             
             else

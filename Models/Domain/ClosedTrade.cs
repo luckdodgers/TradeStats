@@ -70,7 +70,7 @@ namespace TradeStats.Models.Domain
                     roundFee: openTrade.Fee + closeTrade.Fee,
                     exchangeFeeCurrency: Currency.USD,
                     traderFee: currentTraderFee
-                );;
+                );
         }
 
         //public static ClosedTrade Create(OpenTrade openTrade, OpenTrade middleTrade, OpenTrade closeTrade, decimal tradeAmount, decimal currentTraderFee)
@@ -132,5 +132,11 @@ namespace TradeStats.Models.Domain
                     throw new NotImplementedException();
             }
         }
+
+        public decimal GetTraderProfit() => GetAbsProfit() * TraderFee / 100;
+
+        public decimal GetPureAbsProfit() => GetAbsProfit() - GetTraderProfit();
+
+        public decimal GetOpenSum() => OpenPrice * Amount;
     }
 }

@@ -60,7 +60,7 @@ namespace TradeStats.ViewModel.MainWindow
             _curAccountContext = curAccountContext;
 
             _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
-            _closedTradesTab = new ClosedTradesTabViewModel();
+            _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, configProvider);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
             _TradesImported += TradesMergeTab.OnTradesReload;

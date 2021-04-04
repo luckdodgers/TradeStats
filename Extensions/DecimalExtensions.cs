@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace TradeReportsConverter.Extensions
 {
     public static class DecimalExtensions
     {
-        public static string ToTableViewString(this decimal number)
+        public static string ToTableViewPriceString(this decimal number)
         {
-            number = RoundNumber(number);
-            var result = number.ToString();
+            number = RoundNumberForMergeTrades(number);
+            var result = number.ToString(CultureInfo.InvariantCulture);
 
             return result.Contains('.') ? result.TrimEnd('0').Replace('.', ',').TrimEnd(',') : result;
         }
 
-        public static string TwoDigitsAfterDot(this decimal number)
+        public static string TwoDigitsAfterDotRoundUp(this decimal number)
         {
             number = decimal.Round(number, 2);
-            var result = number.ToString();
+            var result = number.ToString(CultureInfo.InvariantCulture);
 
-            return result.Contains(',') ? result.TrimEnd('0') : result;
+            return result.Contains('.') ? result.TrimEnd('0').Replace('.', ',').TrimEnd(',') : result;
         }
 
-        private static decimal RoundNumber(decimal number) =>
+        private static decimal RoundNumberForMergeTrades(decimal number) =>
 
         number switch
         {

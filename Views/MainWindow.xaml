@@ -97,12 +97,12 @@
 
                                         <DataGridTextColumn Width="60" Header="Date" Binding="{Binding Date, StringFormat=\{0:dd.MM.yy\}}"/>
                                         <DataGridTextColumn Width="70" Header="Pair" Binding="{Binding Pair}"/>
-                                        <DataGridTextColumn Width="80" Header="Open price" Binding="{Binding Side}"/>
+                                        <DataGridTextColumn Width="80" Header="Open price" Binding="{Binding OpenPrice}"/>
                                         <DataGridTextColumn Width="60" Header="Sum" CanUserSort="False" Binding="{Binding Sum}"/>
-                                        <DataGridTextColumn Width="80" Header="Close price" CanUserSort="False" Binding="{Binding Price}"/>
-                                        <DataGridTextColumn Width="55" Header="PPT" CanUserSort="False" Binding="{Binding Amount}"/>
-                                        <DataGridTextColumn Width="80" Header="Trader profit" CanUserSort="False" Binding="{Binding Amount}"/>
-                                        <DataGridTextColumn Width="80" Header="Pure Profit" CanUserSort="False" Binding="{Binding Amount}"/>
+                                        <DataGridTextColumn Width="80" Header="Close price" CanUserSort="False" Binding="{Binding ClosePrice}"/>
+                                        <DataGridTextColumn Width="55" Header="PPT, %" CanUserSort="False" Binding="{Binding ProfitPerTrade}"/>
+                                        <DataGridTextColumn Width="80" Header="Trader profit" CanUserSort="False" Binding="{Binding TraderProfit}"/>
+                                        <DataGridTextColumn Width="80" Header="Pure Profit" CanUserSort="False" Binding="{Binding PureAbsProfit}"/>
 
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -115,11 +115,11 @@
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                                             <TextBlock Text="Start date:" FontSize="14" VerticalAlignment="Center"/>
-                                            <DatePicker Margin="7,0,0,0" SelectedDate="{Binding SelectedCurrency, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <DatePicker Margin="7,0,0,0" SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                             <TextBlock Text="From first trade:" FontSize="14" VerticalAlignment="Center" />
-                                            <CheckBox Margin="7,0,0,0" Checked="{Binding StartFromFirstTrade, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
+                                            <CheckBox Margin="7,0,0,0" IsChecked="{Binding StartFromFirstTrade, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
                                             <TextBlock Text="End date:" FontSize="14" VerticalAlignment="Center" />
@@ -127,7 +127,12 @@
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                             <TextBlock Text="To last trade:" FontSize="14" VerticalAlignment="Center" />
-                                            <CheckBox Margin="7,0,0,0" Checked="{Binding EndOnToLastTrade, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
+                                            <CheckBox Margin="7,0,0,0" IsChecked="{Binding EndOnLastTrade, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Command="{Binding LoadTradesCommand}" Height="35" Width="70" Margin="0,10,0,5">
+                                                <TextBlock Text="Load" FontSize="14" FontWeight="DemiBold"/>
+                                            </Button>
                                         </StackPanel>
                                         <Separator Margin="0,12,0,12"/>
                                         <StackPanel Orientation="Horizontal">
@@ -149,6 +154,11 @@
                                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                             <TextBlock Text="Pure abs profit:" FontSize="15" VerticalAlignment="Center" />
                                             <TextBlock Text="{Binding TradesPureAbsProfit}"  FontSize="15" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Height="35" Width="70" Margin="0,10,0,5">
+                                                <TextBlock Text="Calculate" FontSize="14" FontWeight="DemiBold"/>
+                                            </Button>
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>
