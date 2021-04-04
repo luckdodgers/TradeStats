@@ -191,8 +191,10 @@ namespace TradeStats.ViewModel.ManageAccounts
             var accounts = _context.Accounts.AsNoTracking().Select(a => a.AccountName);
             ExistingAccounts.AddRange(accounts);
 
-            //if (ExistingAccounts.Count > 0)
-                //SelectedAccount = ExistingAccounts.First(a => a == _cachedData.CurrentAccount.AccountName);
+            var activeAccount = ExistingAccounts.FirstOrDefault(a => a == _cachedData.CurrentAccount.AccountName);
+
+            if (activeAccount != null)
+                SelectedAccount = activeAccount;
         }
 
         private void CheckIfCanSaveEditedAccount()

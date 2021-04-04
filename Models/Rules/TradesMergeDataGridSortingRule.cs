@@ -11,7 +11,7 @@ namespace TradeStats.Models.Rules
         {
             var orderedNewValue = newValue.OrderBy(t => t.Pair)
                 .ThenBy(t => t.Side)
-                .ThenBy(t => t.Date);
+                .ThenBy(t => t.Price);
 
             collection.Clear();
             collection.AddRange(orderedNewValue);

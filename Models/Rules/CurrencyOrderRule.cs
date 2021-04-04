@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TradeStats.Models.Common;
 using TradeStats.Models.Domain;
 
 namespace TradeStats.Models.Rules
 {
     public static class CurrencyOrderRule
     {
-        public static readonly string AnyCurrencyString = "- All -";
-
-        public static List<string> GetStringCurrenciesForCombobox(this IEnumerable<Currency> currencies)
+        public static List<string> GetStringCurrenciesForCombobox(this IEnumerable<Currency> currencies, bool includeAllValue = true)
         {
             var filteredCollection = currencies.Except(new List<Currency>() { Currency.USDT, Currency.USD }).ToList();
             var orderedList = new List<Currency>() { Currency.BTC, Currency.ETH };
@@ -19,7 +15,9 @@ namespace TradeStats.Models.Rules
             orderedList.AddRange(filteredCollection.Except(orderedList).OrderBy(cur => cur.ToString()));
 
             var resultList = orderedList.Select(cur => cur.ToString()).ToList();
-            resultList.Insert(0, AnyCurrencyString);
+
+            if (includeAllValue)
+                resultList.Insert(0, Constants.AnyCurrencyString);
 
             return resultList;
         }

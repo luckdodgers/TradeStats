@@ -16,13 +16,15 @@ using TradeStats.Services.Interfaces;
 using TradeStats.ViewModel.DTO;
 using TradeStats.ViewModel.Interfaces;
 using TradeReportsConverter.Extensions;
+using TradeStats.Models.Common;
+using System.Collections.Specialized;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
     public class TradesMergeTabViewModel : BindableBase, ITradesMergeTabValidations, ITradesReloadHandler
     {
-        public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; set; } = new ObservableCollection<TradeMergeItemDto>();
-        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox();
+        public ObservableCollection<TradeMergeItemDto> TableOpenTrades { get; } = new ObservableCollection<TradeMergeItemDto>();
+        public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox(includeAllValue: false);
 
         #region Commands
         public ICommand MergeCommand { get; private set; }
@@ -87,12 +89,48 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         }
         #endregion
 
+        #region PairToMerge
+        private string _pairToMerge;
+        public string PairToMerge
+        {
+            get => _pairToMerge;
+            set => SetProperty(ref _pairToMerge, value);
+        }
+        #endregion
+
+        #region SideToMerge
+        private string _sideToMerge;
+        public string SideToMerge
+        {
+            get => _sideToMerge;
+            set => SetProperty(ref _sideToMerge, value);
+        }
+        #endregion
+
+        #region PriceToMerge
+        private string _priceToMerge;
+        public string PriceToMerge
+        {
+            get => _priceToMerge;
+            set => SetProperty(ref _priceToMerge, value);
+        }
+        #endregion
+
+        #region SumToMerge
+        private string _sumToMerge;
+        public string SumToMerge
+        {
+            get => _sumToMerge;
+            set => SetProperty(ref _sumToMerge, value);
+        }
+        #endregion
+
         private readonly ICachedData<Account> _accountCache;
         private readonly IConfigurationProvider _configProvider;
         private readonly ICurrentAccountTradeContext _context;
 
         private IReadOnlyList<TradeMergeItemDto> _allOpenTradeDtoList = new List<TradeMergeItemDto>();
-        private List<TradeMergeItemDto> _selectedTradesToMerge = new();
+        private readonly List<TradeMergeItemDto> _selectedTradesToMerge = new();
         private ClosedTrade _closingTrade = null;
 
         public ICommand AddToMergeCommand { get; private set; }
@@ -113,6 +151,19 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         public bool IsAddToMergePossibe(TradeMergeItemDto tradeDtoToAdd)
         {
             /// Checkout <see cref="TradeMergeDtoExtensions"/> class for implementing 3-way merge
+             
+            bool IsDtoToAddContainsSamePair()
+            {
+                var usdCurrencies = new Currency[] { Currency.USD, Currency.USDT };
+
+                if (usdCurrencies.Contains(_selectedTradesToMerge[0].SecondCurrency))
+                {
+                    return _selectedTradesToMerge[0].FirstCurrency == tradeDtoToAdd.FirstCurrency
+                        && usdCurrencies.Contains(tradeDtoToAdd.SecondCurrency);
+                }
+
+                return _selectedTradesToMerge[0].Pair == tradeDtoToAdd.Pair;
+            }
             
             switch (_selectedTradesToMerge.Count)
             {
@@ -120,7 +171,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                     return true;
 
                 case 1:
-                    return _selectedTradesToMerge[0].Pair == tradeDtoToAdd.Pair // Trying to add same pair as already added
+                   
+                    return IsDtoToAddContainsSamePair() // Trying to add same pair as already added
                         && !_selectedTradesToMerge.Contains(tradeDtoToAdd) // Not trying to add same trade as already added
                         && !_selectedTradesToMerge.Any(t => t.Side == tradeDtoToAdd.Side); // Trying to add trade with reverse side
 
@@ -169,7 +221,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private void OnCurrencySelect(string selectedCurrency)
         {
-            if (selectedCurrency == CurrencyOrderRule.AnyCurrencyString)
+            if (selectedCurrency == Constants.AnyCurrencyString)
                 TableOpenTrades.SetWithDataGridSorting(_allOpenTradeDtoList);
 
             else
@@ -201,6 +253,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
                 UpdateTradeStats();
             }
+
+            UpdateSelectedToMergeTradeData();
         }
 
         private async Task Merge()
@@ -222,6 +276,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
             OnTradesReload();
             UpdateTradeStats();
+            UpdateSelectedToMergeTradeData();
         }
 
         private void UncheckAll()
@@ -231,6 +286,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             _selectedTradesToMerge.Clear();
 
             UpdateTradeStats();
+            UpdateSelectedToMergeTradeData();
         }
 
         private void UpdateTradeStats()
@@ -245,6 +301,25 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             {
                 ProfitPerTradeText = string.Empty;
                 AbsProfitText = string.Empty;
+            }
+        }
+
+        private void UpdateSelectedToMergeTradeData()
+        {
+            if (_selectedTradesToMerge.Count == 1)
+            {
+                PairToMerge = _selectedTradesToMerge[0].Pair;
+                SideToMerge = _selectedTradesToMerge[0].Side.ToString();
+                PriceToMerge = _selectedTradesToMerge[0].Price;
+                SumToMerge = _selectedTradesToMerge[0].Sum;
+            }
+
+            else
+            {
+                PairToMerge = string.Empty;
+                SideToMerge = string.Empty;
+                PriceToMerge = string.Empty;
+                SumToMerge = string.Empty;
             }
         }
     }

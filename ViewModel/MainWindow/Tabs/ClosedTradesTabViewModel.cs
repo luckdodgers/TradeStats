@@ -5,11 +5,14 @@ using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TradeReportsConverter.Extensions;
 using TradeStats.Extensions;
+using TradeStats.Models.Common;
 using TradeStats.Models.Domain;
 using TradeStats.Models.Rules;
 using TradeStats.Services.Interfaces;
@@ -20,7 +23,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 {
     class ClosedTradesTabViewModel : BindableBase, ITradesReloadHandler
     {
-        public ObservableCollection<ClosedTradeItemDto> TableClosedTrades { get; set; } = new ObservableCollection<ClosedTradeItemDto>();
+        public ObservableCollection<ClosedTradeItemDto> TableClosedTrades { get; } = new ObservableCollection<ClosedTradeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox();
 
         #region SelectedCurrency
@@ -36,7 +39,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         #endregion
 
         #region StartDate
-        private DateTime _startDate;
+        private DateTime _startDate = DateTime.Today.AddMonths(-1); 
         public DateTime StartDate
         {
             get => _startDate;
@@ -54,7 +57,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         #endregion
 
         #region EndDate
-        private DateTime _endDate;
+        private DateTime _endDate = DateTime.Today;
         public DateTime EndDate
         {
             get => _endDate;
@@ -129,6 +132,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             LoadTradesCommand = new DelegateCommand(async () => await LoadTrades());
 
             SelectedCurrency = CurrenciesList[0];
+            TableClosedTrades.CollectionChanged += UpdateClosedTradesStats;
         }
 
         public async void OnTradesReload()
@@ -138,15 +142,39 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private async Task LoadTrades()
         {
-            var closedTrades = _context.CurrentAccountClosedTrades
-                .Where(t => t.FirstCurrency == Enum.Parse<Currency>(SelectedCurrency));
+            var closedTrades = _context.CurrentAccountClosedTrades;
 
-            closedTrades = StartFromFirstTrade ? closedTrades : closedTrades.Where(t => t.Datetime >= StartDate);
-            closedTrades = EndOnLastTrade ? closedTrades : closedTrades.Where(t => t.Datetime <= EndDate);
+            if (SelectedCurrency != Constants.AnyCurrencyString)
+                closedTrades = closedTrades.Where(t => t.FirstCurrency == Enum.Parse<Currency>(SelectedCurrency));
 
-            var closedTradesList = await closedTrades.ProjectToListAsync<ClosedTradeItemDto>(_configProvider);
+            var startDate = StartFromFirstTrade ? DateTime.MinValue : StartDate;
+            var endDate = EndOnLastTrade ? DateTime.MaxValue : EndDate;
+
+            var closedTradesList = await closedTrades
+                .Where(t => t.Datetime >= startDate && t.Datetime <= endDate)
+                .ProjectToListAsync<ClosedTradeItemDto>(_configProvider);
 
             TableClosedTrades.SetWithDataGridSorting(closedTradesList);
+        }
+
+        private void UpdateClosedTradesStats(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (TableClosedTrades.Count > 0)
+            {
+                TradesAmount = TableClosedTrades.Count;
+                AvgProfitPerTrade = Math.Round(TableClosedTrades.Average(t => decimal.Parse(t.ProfitPerTrade)), 2);
+                TraderProfit = TableClosedTrades.Sum(t => decimal.Parse(t.TraderAbsProfit));
+                TradesPureAbsProfit = TableClosedTrades.Sum(t => decimal.Parse(t.PureAbsProfit));
+                TradesAbsProfit = TraderProfit + TradesPureAbsProfit;
+            } 
+            
+            else
+            {
+                AvgProfitPerTrade = 0;
+                TraderProfit = 0;
+                TradesPureAbsProfit = 0;
+                TradesAbsProfit = 0;
+            }
         }
     }
 }

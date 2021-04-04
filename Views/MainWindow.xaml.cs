@@ -33,25 +33,22 @@ namespace TradeStats.Views
 
         private void ClearTradesGridItemColor()
         {
-            foreach (var item in TradesDataGrid.Items)
+            foreach (var item in TradesToMergeDataGrid.Items)
             {
-                var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(item);
-                if (row == null)
-                    continue;
-
+                var row = (DataGridRow)TradesToMergeDataGrid.ItemContainerGenerator.ContainerFromItem(item);
                 row.Background = Brushes.Transparent;
             }
         }
 
         private void AddToMergeBtn_Click(object sender, RoutedEventArgs e)
         {
-            var selectedDto = (TradeMergeItemDto)TradesDataGrid.SelectedItem;
+            var selectedDto = (TradeMergeItemDto)TradesToMergeDataGrid.SelectedItem;
             var mergeTabValidations = _viewModel.TradesMergeTab as ITradesMergeTabValidations;
 
             if (mergeTabValidations.IsAddToMergePossibe(selectedDto))
             {
                 // Setting color for selected and added for merge row
-                var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(TradesDataGrid.SelectedItem);
+                var row = (DataGridRow)TradesToMergeDataGrid.ItemContainerGenerator.ContainerFromItem(TradesToMergeDataGrid.SelectedItem);
                 row.Background = _itemToMergeBrush;
             }
         }
