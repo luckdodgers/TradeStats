@@ -24,12 +24,11 @@ namespace TradeStats.Services.Mappings
                 .ForMember(dto => dto.FirstCurrency, dom => dom.MapFrom(src => src.FirstCurrency))
                 .ForMember(dto => dto.SecondCurrency, dom => dom.MapFrom(src => src.SecondCurrency))
                 .ForMember(dto => dto.Pair, dom => dom.MapFrom(src => src.FirstCurrency + "/" + src.SecondCurrency))
-                .ForMember(dto => dto.OpenPrice, dom => dom.MapFrom(src => src.OpenPrice.ToTableViewPriceString()))
+                .ForMember(dto => dto.OpenPrice, dom => dom.MapFrom(src => src.BuyPrice.ToTableViewPriceString()))
                 .ForMember(dto => dto.Sum, dom => dom.MapFrom(src => src.GetOpenSum().TwoDigitsAfterDotRoundUp()))
-                .ForMember(dto => dto.ClosePrice, dom => dom.MapFrom(src => src.ClosePrice.ToTableViewPriceString()))
+                .ForMember(dto => dto.ClosePrice, dom => dom.MapFrom(src => src.SellPrice.ToTableViewPriceString()))
                 .ForMember(dto => dto.ProfitPerTrade, dom => dom.MapFrom(src => src.GetPercentageProfit().TwoDigitsAfterDotRoundUp()))
-                .ForMember(dto => dto.AbsProfit, dom => dom.MapFrom(src => src.GetAbsProfit().TwoDigitsAfterDotRoundUp()))
-                .ForMember(dto => dto.TraderProfit, dom => dom.MapFrom(src => src.GetTraderProfit().TwoDigitsAfterDotRoundUp()))
+                .ForMember(dto => dto.TraderAbsProfit, dom => dom.MapFrom(src => src.GetTraderProfit().TwoDigitsAfterDotRoundUp()))
                 .ForMember(dto => dto.PureAbsProfit, dom => dom.MapFrom(src => src.GetPureAbsProfit().TwoDigitsAfterDotRoundUp()));
         }
     }

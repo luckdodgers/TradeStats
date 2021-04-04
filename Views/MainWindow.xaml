@@ -97,11 +97,11 @@
 
                                         <DataGridTextColumn Width="60" Header="Date" Binding="{Binding Date, StringFormat=\{0:dd.MM.yy\}}"/>
                                         <DataGridTextColumn Width="70" Header="Pair" Binding="{Binding Pair}"/>
-                                        <DataGridTextColumn Width="80" Header="Open price" Binding="{Binding OpenPrice}"/>
+                                        <DataGridTextColumn Width="80" Header="Buy price" Binding="{Binding OpenPrice}"/>
                                         <DataGridTextColumn Width="60" Header="Sum" CanUserSort="False" Binding="{Binding Sum}"/>
-                                        <DataGridTextColumn Width="80" Header="Close price" CanUserSort="False" Binding="{Binding ClosePrice}"/>
+                                        <DataGridTextColumn Width="80" Header="Sell price" CanUserSort="False" Binding="{Binding ClosePrice}"/>
                                         <DataGridTextColumn Width="55" Header="PPT, %" CanUserSort="False" Binding="{Binding ProfitPerTrade}"/>
-                                        <DataGridTextColumn Width="80" Header="Trader profit" CanUserSort="False" Binding="{Binding TraderProfit}"/>
+                                        <DataGridTextColumn Width="80" Header="Trader profit" CanUserSort="False" Binding="{Binding TraderAbsProfit}"/>
                                         <DataGridTextColumn Width="80" Header="Pure Profit" CanUserSort="False" Binding="{Binding PureAbsProfit}"/>
 
                                     </DataGrid.Columns>

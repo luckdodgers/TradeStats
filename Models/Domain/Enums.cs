@@ -2,8 +2,6 @@
 {
     public enum TradeSide : short { Buy, Sell }
 
-    public enum Position : short { Long, Short }
-
     public enum RawCurrencies : short
     {
         XBT

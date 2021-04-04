@@ -36,6 +36,9 @@ namespace TradeStats.Views
             foreach (var item in TradesDataGrid.Items)
             {
                 var row = (DataGridRow)TradesDataGrid.ItemContainerGenerator.ContainerFromItem(item);
+                if (row == null)
+                    continue;
+
                 row.Background = Brushes.Transparent;
             }
         }

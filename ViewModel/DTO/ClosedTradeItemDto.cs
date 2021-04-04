@@ -14,8 +14,7 @@ namespace TradeStats.ViewModel.DTO
         public string ClosePrice { get; set; }
         public string Sum { get; set; }
         public string ProfitPerTrade { get; set; }
-        public string AbsProfit { get; set; }
-        public string TraderProfit { get; set; }
+        public string TraderAbsProfit { get; set; }
         public string PureAbsProfit { get; set; }
     }
 }

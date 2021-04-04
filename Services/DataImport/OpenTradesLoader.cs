@@ -32,10 +32,11 @@ namespace TradeStats.Services.DataImport
                 .Max();
 
                 importedTrades = importedTrades.RemoveFiatExchanges()
-                    .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)); // Remove imported trades that are earlier or equal than existing trades in DB
+                    .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)) // Remove imported trades that are earlier or equal than existing trades in DB
+                    .Except(importedTrades.Where(it => it.FirstCurrency == Currency.USD && it.SecondCurrency == Currency.USDT)); // Remove fiat/stablecoin exchange 
             }
             
-            else _context.TradesContext.OpenTrades.AddRange(importedTrades);
+            _context.TradesContext.OpenTrades.AddRange(importedTrades);
 
             await _context.SaveChangesAsync();
         }

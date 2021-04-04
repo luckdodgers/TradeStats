@@ -110,30 +110,23 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             SelectedCurrency = CurrenciesList[0];
         }
 
-        public bool IsAddToMergePossibe(TradeMergeItemDto tradeDto)
+        public bool IsAddToMergePossibe(TradeMergeItemDto tradeDtoToAdd)
         {
-            //if (SelectedCurrency == CurrencyOrderRule.AnyCurrencyString)
-            //{
-            //    switch (_selectedTradesToMerge.Count)
-            //    {
-            //        case 0:
-            //            return true;
-
-            //        case 1:
-            //            var alreadySelected = _selectedTradesToMerge.Peek();
-            //            return tradeDto.HasCommonCurrencyWith(alreadySelected);
-
-            //        case 2:
-            //            return tradeDto.CanBeThirdCurrencyIn(_selectedTradesToMerge);
-
-            //        default:
-            //            throw new SelectedTradesWrongAmountException($"Added for merge trades amount should be 2. Actual amount is {_selectedTradesToMerge.Count}.");
-            //    }
-            //}
-
-            //else
+            /// Checkout <see cref="TradeMergeDtoExtensions"/> class for implementing 3-way merge
             
-            return !_selectedTradesToMerge.Contains(tradeDto) && !_selectedTradesToMerge.Any(t => t.Side == tradeDto.Side);
+            switch (_selectedTradesToMerge.Count)
+            {
+                case 0:
+                    return true;
+
+                case 1:
+                    return _selectedTradesToMerge[0].Pair == tradeDtoToAdd.Pair // Trying to add same pair as already added
+                        && !_selectedTradesToMerge.Contains(tradeDtoToAdd) // Not trying to add same trade as already added
+                        && !_selectedTradesToMerge.Any(t => t.Side == tradeDtoToAdd.Side); // Trying to add trade with reverse side
+
+                default:
+                    return false;
+            }
         }
 
         public async void OnTradesReload()

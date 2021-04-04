@@ -6,16 +6,15 @@ namespace TradeStats.Models.Domain
     {
         protected ClosedTrade() { }
 
-        public ClosedTrade(int accountId, DateTime datetime, Position position, Currency firstCurrency, Currency secondCurrency,
+        public ClosedTrade(int accountId, DateTime datetime, Currency firstCurrency, Currency secondCurrency,
             decimal openPrice, decimal closePrice, decimal amount, decimal roundFee, Currency exchangeFeeCurrency, decimal traderFee)
         {
             AccountId = accountId;
             Datetime = datetime;
-            Position = position;
             FirstCurrency = firstCurrency;
             SecondCurrency = secondCurrency;
-            OpenPrice = openPrice;
-            ClosePrice = closePrice;
+            BuyPrice = openPrice;
+            SellPrice = closePrice;
             Amount = amount;
             ExchangeRoundFee = roundFee;
             TraderFee = traderFee;
@@ -25,7 +24,6 @@ namespace TradeStats.Models.Domain
         public long Id { get; }
         public int AccountId { get; }
         public DateTime Datetime { get; }
-        public Position Position { get; }
 
         // Currency has been spent in open trade
         public Currency FirstCurrency { get; }
@@ -33,8 +31,8 @@ namespace TradeStats.Models.Domain
         // Currency has been spent in close trade
         public Currency SecondCurrency { get; } 
 
-        public decimal OpenPrice { get; }
-        public decimal ClosePrice { get; }
+        public decimal BuyPrice { get; }
+        public decimal SellPrice { get; }
         public decimal Amount { get; }
         public decimal ExchangeRoundFee { get; }
         public Currency ExchangeFeeCurrency { get; }
@@ -42,50 +40,38 @@ namespace TradeStats.Models.Domain
 
         private decimal? _absProfit;
 
-        public static ClosedTrade Create(OpenTrade openTrade, OpenTrade closeTrade, decimal tradeAmount, decimal currentTraderFee)
+        public static ClosedTrade Create(OpenTrade firstTrade, OpenTrade secondTrade, decimal tradeAmount, decimal currentTraderFee)
         {
-            Position tradePosition = default;
+            OpenTrade buyTrade = default;
+            OpenTrade sellTrade = default;
 
-            switch (closeTrade.Side)
+            switch (firstTrade.Side)
             {
-                case TradeSide.Sell:
-                    tradePosition = Position.Long;
+                case TradeSide.Buy:
+                    buyTrade = firstTrade;
+                    sellTrade = secondTrade;
                     break;
 
-                case TradeSide.Buy:
-                    tradePosition = Position.Short;
+                case TradeSide.Sell:
+                    buyTrade = secondTrade;
+                    sellTrade = firstTrade;
                     break;
             }
 
             return new ClosedTrade
                 (
-                    accountId: closeTrade.AccountId,
-                    datetime: closeTrade.Datetime,
-                    position: tradePosition,
-                    firstCurrency: closeTrade.FirstCurrency,
-                    secondCurrency: closeTrade.SecondCurrency,
-                    openPrice: openTrade.Price,
-                    closePrice: closeTrade.Price,
+                    accountId: sellTrade.AccountId,
+                    datetime: sellTrade.Datetime,
+                    firstCurrency: sellTrade.FirstCurrency,
+                    secondCurrency: sellTrade.SecondCurrency,
+                    openPrice: buyTrade.Price,
+                    closePrice: sellTrade.Price,
                     amount: tradeAmount,
-                    roundFee: openTrade.Fee + closeTrade.Fee,
+                    roundFee: buyTrade.Fee + sellTrade.Fee,
                     exchangeFeeCurrency: Currency.USD,
                     traderFee: currentTraderFee
                 );
         }
-
-        //public static ClosedTrade Create(OpenTrade openTrade, OpenTrade middleTrade, OpenTrade closeTrade, decimal tradeAmount, decimal currentTraderFee)
-        //{
-        //    return new ClosedTrade
-        //        (
-        //            accountId: closeTrade.AccountId,
-        //            datetime: closeTrade.Datetime,
-        //            position: Position.Long,
-        //            firstCurrency: openTrade.FirstCurrency,
-        //            secondCurrency: closeTrade.SecondCurrency,
-        //            openPrice: openTrade.Price,
-        //            closePrice: 
-        //        );
-        //}
 
         public void SetNewTraderFee(decimal newFee) => TraderFee = newFee;
 
@@ -95,16 +81,7 @@ namespace TradeStats.Models.Domain
             if (_absProfit != null)
                 return _absProfit.Value;
 
-            switch (Position)
-            {
-                case Position.Long:
-                    _absProfit = ClosePrice * Amount - OpenPrice * Amount;
-                    break;
-
-                case Position.Short:
-                    _absProfit = OpenPrice * Amount - ClosePrice * Amount;
-                    break;
-            }
+            _absProfit = SellPrice * Amount - BuyPrice * Amount;
 
             if (ExchangeFeeCurrency == Currency.USD || ExchangeFeeCurrency == Currency.USDT)
                 _absProfit -= ExchangeRoundFee;
@@ -112,31 +89,13 @@ namespace TradeStats.Models.Domain
             return _absProfit.Value;
         }
 
-        // Abs profit before subtracting trader fee
-        public decimal GetPercentageProfit()
-        {
-            decimal exchangeFeeToSubtract = decimal.Zero;
+        // Percentage of profit before any fee subtracting
+        public decimal GetPercentageProfit() => ((SellPrice / BuyPrice) - 1m) * 100m;
 
-            if (ExchangeFeeCurrency == Currency.USD || ExchangeFeeCurrency == Currency.USDT)
-                exchangeFeeToSubtract -= ExchangeRoundFee;
-
-            switch (Position)
-            {
-                case Position.Long:
-                    return ((ClosePrice * Amount) / (OpenPrice * Amount - exchangeFeeToSubtract) - 1m) * 100m;
-
-                case Position.Short:
-                    return ((OpenPrice * Amount) / (ClosePrice * Amount - exchangeFeeToSubtract) - 1m) * 100m;
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        public decimal GetTraderProfit() => GetAbsProfit() * TraderFee / 100;
+        public decimal GetTraderProfit() => GetAbsProfit() * (TraderFee / 100);
 
         public decimal GetPureAbsProfit() => GetAbsProfit() - GetTraderProfit();
 
-        public decimal GetOpenSum() => OpenPrice * Amount;
+        public decimal GetOpenSum() => BuyPrice * Amount;
     }
 }

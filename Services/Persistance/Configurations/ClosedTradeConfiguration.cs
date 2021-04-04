@@ -19,9 +19,6 @@ namespace TradeStats.Services.Persistance.Configurations
 
             builder.Property(b => b.SecondCurrency)
                 .HasConversion<int>();
-
-            builder.Property(b => b.Position)
-                .HasConversion<int>();
         }
     }
 }
