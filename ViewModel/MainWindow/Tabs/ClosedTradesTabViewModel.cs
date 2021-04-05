@@ -170,6 +170,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             
             else
             {
+                TradesAmount = 0;
                 AvgProfitPerTrade = 0;
                 TraderProfit = 0;
                 TradesPureAbsProfit = 0;

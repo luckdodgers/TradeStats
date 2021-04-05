@@ -8,16 +8,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using TradeStats.Exceptions;
+using TradeReportsConverter.Extensions;
 using TradeStats.Extensions;
+using TradeStats.Models.Common;
 using TradeStats.Models.Domain;
 using TradeStats.Models.Rules;
 using TradeStats.Services.Interfaces;
 using TradeStats.ViewModel.DTO;
 using TradeStats.ViewModel.Interfaces;
-using TradeReportsConverter.Extensions;
-using TradeStats.Models.Common;
-using System.Collections.Specialized;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
@@ -248,8 +246,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 var openTrade = await _context.CurrentAccountOpenTrades.FirstAsync(ot => ot.Id == _selectedTradesToMerge[0].Id);
                 var closeTrade = await _context.CurrentAccountOpenTrades.FirstAsync(ot => ot.Id == _selectedTradesToMerge[1].Id);
 
-                var closedTradeAmount = openTrade.GetPotentialMergeAmount(closeTrade);
-                _closingTrade = ClosedTrade.Create(openTrade, closeTrade, closedTradeAmount, _accountCache.CurrentAccount.Fee);
+                var mergeData = openTrade.GetPotentialMergeData(closeTrade);
+                _closingTrade = ClosedTrade.Create(openTrade, closeTrade, mergeData, _accountCache.CurrentAccount.Fee);
 
                 UpdateTradeStats();
             }
@@ -265,7 +263,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 .Where(ot => _selectedTradesToMerge.Select(mt => mt.Id).Contains(ot.Id))
                 .ToListAsync();
 
-            var closedTradeAmount = tradesToMerge[0].MergeWith(tradesToMerge[1]);
+            tradesToMerge[0].MergeWith(tradesToMerge[1]);
             _context.TradesContext.OpenTrades.RemoveRange(tradesToMerge.Where(ttm => ttm.IsClosed));
 
             await _context.TradesContext.ClosedTrades.AddAsync(_closingTrade);

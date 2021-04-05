@@ -40,7 +40,7 @@ namespace TradeStats.Models.Domain
 
         private decimal? _absProfit;
 
-        public static ClosedTrade Create(OpenTrade firstTrade, OpenTrade secondTrade, decimal tradeAmount, decimal currentTraderFee)
+        public static ClosedTrade Create(OpenTrade firstTrade, OpenTrade secondTrade, MergeResultData mergeResult, decimal traderFee)
         {
             OpenTrade buyTrade = default;
             OpenTrade sellTrade = default;
@@ -66,10 +66,10 @@ namespace TradeStats.Models.Domain
                     secondCurrency: sellTrade.SecondCurrency,
                     openPrice: buyTrade.Price,
                     closePrice: sellTrade.Price,
-                    amount: tradeAmount,
-                    roundFee: buyTrade.Fee + sellTrade.Fee,
+                    amount: mergeResult.Amount,
+                    roundFee: mergeResult.ExchangeFee,
                     exchangeFeeCurrency: Currency.USD,
-                    traderFee: currentTraderFee
+                    traderFee: traderFee
                 );
         }
 

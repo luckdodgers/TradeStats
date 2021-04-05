@@ -31,55 +31,68 @@ namespace TradeStats.Models.Domain
         public decimal Amount { get; private set; }
         public decimal Sum { get; private set; }
         public Currency FeeCurrency { get; private set; }
-        public decimal Fee { get; }
+        public decimal Fee { get; private set; }
         public bool IsClosed { get; private set; }
 
         // Returns merge amount
-        public decimal MergeWith(OpenTrade secondTrade)
+        public MergeResultData MergeWith(OpenTrade secondTrade)
         {
-            decimal mergeAmount;
+            MergeResultData mergeResultData;
 
             if (Amount > secondTrade.Amount)
             {
-                mergeAmount = secondTrade.Amount;
+                var amountResidue = Amount - secondTrade.Amount;
+                var mergeFee = Fee * (secondTrade.Amount / Amount) + secondTrade.Fee;
+                var feeResidue = Fee - mergeFee;
 
-                Amount -= secondTrade.Amount;
-                secondTrade.SetResidue(decimal.Zero);
-                Sum = Price * Amount;
+                mergeResultData = new MergeResultData(secondTrade.Amount, mergeFee);
+
+                SetResidue(amountResidue, feeResidue);
+                secondTrade.SetResidue(decimal.Zero, decimal.Zero);
             }
 
             else
             {
-                mergeAmount = Amount;
+                var secondTradeAmountResidue = secondTrade.Amount - Amount;
+                var mergeFee = secondTrade.Fee * (Amount / secondTrade.Amount) + Fee;
+                var secondTradeFeeResidue = mergeFee;
 
-                var secondTradeResidue = secondTrade.Amount - Amount;
-                secondTrade.SetResidue(secondTradeResidue);
-                SetResidue(decimal.Zero);
+                mergeResultData = new MergeResultData(Amount, mergeFee);
+
+                secondTrade.SetResidue(secondTradeAmountResidue, secondTradeFeeResidue);
+                SetResidue(decimal.Zero, decimal.Zero);
             }
 
-            return mergeAmount;
+            return mergeResultData;
         }
 
-        public decimal GetPotentialMergeAmount(OpenTrade secondTrade) => Amount > secondTrade.Amount ? secondTrade.Amount : Amount;
-
-        public void SetResidue(decimal newResidue)
+        public MergeResultData GetPotentialMergeData(OpenTrade secondTrade)
         {
-            Amount = newResidue;
+            MergeResultData mergeResultData;
+
+            if (Amount > secondTrade.Amount)
+            {
+                var mergeFee = Fee * (secondTrade.Amount / Amount) + secondTrade.Fee;
+                mergeResultData = new MergeResultData(secondTrade.Amount, mergeFee);
+            }
+
+            else
+            {
+                var mergeFee = secondTrade.Fee * (Amount / secondTrade.Amount) + Fee;
+                mergeResultData = new MergeResultData(Amount, mergeFee);
+            }
+
+            return mergeResultData;
+        }
+
+        public void SetResidue(decimal newAmount, decimal newFee)
+        {
+            Amount = newAmount;
+            Fee = newFee;
             Sum = Price * Amount;
 
-            if (newResidue == decimal.Zero)
+            if (newAmount == decimal.Zero)
                 IsClosed = true;
-        }
-
-        public bool IsEqualByValue(OpenTrade comparingTrade)
-        {
-            return Datetime == comparingTrade.Datetime
-                && Side == comparingTrade.Side
-                && FirstCurrency == comparingTrade.FirstCurrency
-                && SecondCurrency == comparingTrade.SecondCurrency
-                && Price == comparingTrade.Price
-                && Amount == comparingTrade.Amount
-                && Sum == comparingTrade.Sum;        
         }
     }
 }
