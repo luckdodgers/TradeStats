@@ -42,10 +42,10 @@ namespace TradeStats.Models.Domain
             if (Amount > secondTrade.Amount)
             {
                 var amountResidue = Amount - secondTrade.Amount;
-                var mergeFee = Fee * (secondTrade.Amount / Amount) + secondTrade.Fee;
+                var mergeFee = Fee * (secondTrade.Amount / Amount);
                 var feeResidue = Fee - mergeFee;
 
-                mergeResultData = new MergeResultData(secondTrade.Amount, mergeFee);
+                mergeResultData = new MergeResultData(secondTrade.Amount, mergeFee + secondTrade.Fee);
 
                 SetResidue(amountResidue, feeResidue);
                 secondTrade.SetResidue(decimal.Zero, decimal.Zero);
@@ -54,10 +54,10 @@ namespace TradeStats.Models.Domain
             else
             {
                 var secondTradeAmountResidue = secondTrade.Amount - Amount;
-                var mergeFee = secondTrade.Fee * (Amount / secondTrade.Amount) + Fee;
-                var secondTradeFeeResidue = mergeFee;
+                var secondTradeMergeFee = secondTrade.Fee * (Amount / secondTrade.Amount);
+                var secondTradeFeeResidue = secondTrade.Fee - secondTradeMergeFee;
 
-                mergeResultData = new MergeResultData(Amount, mergeFee);
+                mergeResultData = new MergeResultData(Amount, secondTradeMergeFee + Fee);
 
                 secondTrade.SetResidue(secondTradeAmountResidue, secondTradeFeeResidue);
                 SetResidue(decimal.Zero, decimal.Zero);

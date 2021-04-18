@@ -27,6 +27,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         #region Commands
         public ICommand MergeCommand { get; private set; }
         public ICommand UncheckAllCommand { get; private set; }
+        public ICommand AddToMergeCommand { get; private set; }
+        public ICommand MergeAllCommand { get; private set; }
         #endregion
 
         #region SelectedCurrency
@@ -57,6 +59,15 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         {
             get => _isAddBtnEnabled;
             set => SetProperty(ref _isAddBtnEnabled, value);
+        }
+        #endregion
+
+        #region IsMergeAllEnabled
+        private bool _isMergeAllEnabled = true;
+        public bool IsMergeAllEnabled
+        {
+            get => _isMergeAllEnabled;
+            set => SetProperty(ref _isMergeAllEnabled, value);
         }
         #endregion
 
@@ -131,19 +142,23 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         private readonly List<TradeMergeItemDto> _selectedTradesToMerge = new();
         private ClosedTrade _closingTrade = null;
 
-        public ICommand AddToMergeCommand { get; private set; }
-
         public TradesMergeTabViewModel(ICachedData<Account> accountCache, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext)
         {
             _accountCache = accountCache;
             _configProvider = configProvider;
             _context = curAccountContext;
 
+            InitCommands();
+
+            SelectedCurrency = CurrenciesList[0];
+        }
+
+        private void InitCommands()
+        {
             MergeCommand = new DelegateCommand(async () => await Merge()).ObservesCanExecute(() => IsMergeBtnEnabled);
             UncheckAllCommand = new DelegateCommand(UncheckAll);
             AddToMergeCommand = new DelegateCommand<object>(async (obj) => await AddToMerge(obj));
-
-            SelectedCurrency = CurrenciesList[0];
+            MergeAllCommand = new DelegateCommand(async () => await AutoMergeAll()).ObservesProperty(() => IsMergeAllEnabled);
         }
 
         public bool IsAddToMergePossibe(TradeMergeItemDto tradeDtoToAdd)
@@ -275,6 +290,59 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             OnTradesReload();
             UpdateTradeStats();
             UpdateSelectedToMergeTradeData();
+        }
+
+        private async Task AutoMergeAll()
+        {
+            var selectedCurrency = Enum.Parse<Currency>(SelectedCurrency);
+
+            var openTrades = await _context.CurrentAccountOpenTrades
+                .AsNoTrackingWithIdentityResolution()
+                .Where(ot => ot.FirstCurrency == selectedCurrency
+                && (ot.SecondCurrency == Currency.USD || ot.SecondCurrency == Currency.USDT)
+                && _allOpenTradeDtoList.Select(dto => dto.Id).Contains(ot.Id))
+                .OrderBy(ot => ot.Side)
+                .OrderBy(ot => ot.Price)
+                .ToListAsync();
+
+            var closedOpenTrades = new List<OpenTrade>(20);
+            var closedTrades = new List<ClosedTrade>(10);
+
+            void ProcessIfClosed(OpenTrade trade)
+            {
+                if (trade.IsClosed)
+                {
+                    closedOpenTrades.Add(trade);
+                    openTrades.Remove(trade);
+                }
+            }
+
+            while (true)
+            {
+                var buyTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Buy && !t.IsClosed);
+                var sellTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Sell && !t.IsClosed);
+
+                if (buyTrade != null && sellTrade != null)
+                {
+                    var mergeData = buyTrade.MergeWith(sellTrade);
+                    var closedTrade = ClosedTrade.Create(buyTrade, sellTrade, mergeData, _accountCache.CurrentAccount.Fee);
+
+                    closedTrades.Add(closedTrade);
+
+                    ProcessIfClosed(buyTrade);
+                    ProcessIfClosed(sellTrade);
+
+                    continue;
+                }
+
+                break;
+            }
+
+            _context.TradesContext.OpenTrades.RemoveRange(closedOpenTrades);
+            await _context.TradesContext.ClosedTrades.AddRangeAsync(closedTrades);
+            await _context.SaveChangesAsync();
+
+            OnTradesReload();
         }
 
         private void UncheckAll()

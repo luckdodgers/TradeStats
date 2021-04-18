@@ -78,9 +78,6 @@ namespace TradeStats.Models.Domain
         // Abs profit before subtracting trader fee
         public decimal GetAbsProfit()
         {
-            if (_absProfit != null)
-                return _absProfit.Value;
-
             _absProfit = SellPrice * Amount - BuyPrice * Amount;
 
             if (ExchangeFeeCurrency == Currency.USD || ExchangeFeeCurrency == Currency.USDT)

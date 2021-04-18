@@ -14,12 +14,10 @@ namespace TradeStats.Services.DataImport
     class OpenTradesLoader : IOpenTradesLoader
     {
         private readonly ICurrentAccountTradeContext _context;
-        private readonly ICachedData<Account> _curAccountCache;
 
-        public OpenTradesLoader(ICurrentAccountTradeContext context, ICachedData<Account> curAccountCache)
+        public OpenTradesLoader(ICurrentAccountTradeContext context)
         {
             _context = context;
-            _curAccountCache = curAccountCache;
         }
 
         public async Task UpdateOpenTrades(IEnumerable<OpenTrade> importedTrades)
@@ -32,8 +30,8 @@ namespace TradeStats.Services.DataImport
                 .Max();
 
                 importedTrades = importedTrades.RemoveFiatExchanges()
-                    .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)) // Remove imported trades that are earlier or equal than existing trades in DB
-                    .Except(importedTrades.Where(it => it.FirstCurrency == Currency.USD && it.SecondCurrency == Currency.USDT)); // Remove fiat/stablecoin exchange 
+                    .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)); // Remove imported trades that are earlier or equal than already existing trades in DB
+                    //.Except(importedTrades.Where(it => it.FirstCurrency == Currency.USD && it.SecondCurrency == Currency.USDT)); // Remove fiat/stablecoin exchange 
             }
             
             _context.TradesContext.OpenTrades.AddRange(importedTrades);
