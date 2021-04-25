@@ -338,11 +338,42 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 break;
             }
 
+            AggregateSmallTrades(closedTrades);
+
             _context.TradesContext.OpenTrades.RemoveRange(closedOpenTrades);
             await _context.TradesContext.ClosedTrades.AddRangeAsync(closedTrades);
             await _context.SaveChangesAsync();
 
             OnTradesReload();
+        }
+
+        private void AggregateSmallTrades(List<ClosedTrade> closedTrades)
+        {
+            var smallTrades = closedTrades
+                .Where(t => t.GetOpenSum() <= Constants.SmallTradeAveragingThreshold);
+
+            if (!smallTrades.Any())
+                return;
+
+            var smallTradesGroups = smallTrades.GroupBy(t => t.FirstCurrency);
+
+            foreach (var group in smallTradesGroups)
+            {
+                var aggregatedClosedTrade = ClosedTrade.CreateWeightedAverage(group.ToList(), _accountCache.CurrentAccount.Fee);
+
+                var nonSmallTrades = closedTrades.Where(t => t.FirstCurrency == group.Key && t.GetOpenSum() > Constants.SmallTradeAveragingThreshold);
+                var minAmountTrade = nonSmallTrades?.FirstOrDefault(t => t.Amount == nonSmallTrades.Min(t => t.Amount));
+
+                if (minAmountTrade != null)
+                {
+                    closedTrades.Add(minAmountTrade.MergeWith(aggregatedClosedTrade, _accountCache.CurrentAccount.Fee));
+                    closedTrades.Remove(minAmountTrade);
+                }
+
+                else closedTrades.Add(aggregatedClosedTrade);
+            }
+
+            closedTrades.RemoveAll(t => smallTrades.Contains(t));
         }
 
         private void UncheckAll()

@@ -31,7 +31,6 @@ namespace TradeStats.Services.DataImport
 
                 importedTrades = importedTrades.RemoveFiatExchanges()
                     .Except(importedTrades.Where(it => it.Datetime <= latestExistingDate)); // Remove imported trades that are earlier or equal than already existing trades in DB
-                    //.Except(importedTrades.Where(it => it.FirstCurrency == Currency.USD && it.SecondCurrency == Currency.USDT)); // Remove fiat/stablecoin exchange 
             }
             
             _context.TradesContext.OpenTrades.AddRange(importedTrades);

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using TradeStats.Extensions;
 
 namespace TradeStats.Models.Domain
 {
@@ -68,6 +71,50 @@ namespace TradeStats.Models.Domain
                     closePrice: sellTrade.Price,
                     amount: mergeResult.Amount,
                     roundFee: mergeResult.ExchangeFee,
+                    exchangeFeeCurrency: Currency.USD,
+                    traderFee: traderFee
+                );
+        }
+
+        public static ClosedTrade Create(Currency firstCurrency, Currency secondCurrency, 
+            decimal buyPrice, decimal amount, decimal sellPrice, decimal roundFee, decimal traderFee)
+        {
+            return new ClosedTrade
+                (
+                    accountId: -1,
+                    datetime: DateTime.MinValue,
+                    firstCurrency: firstCurrency,
+                    secondCurrency: secondCurrency,
+                    openPrice: buyPrice,
+                    closePrice: sellPrice,
+                    amount: amount,
+                    roundFee: roundFee,
+                    exchangeFeeCurrency: Currency.USD,
+                    traderFee: traderFee
+                );
+        }
+
+        public static ClosedTrade CreateWeightedAverage(IEnumerable<ClosedTrade> tradesToAggregate, decimal traderFee)
+        {
+            if (!tradesToAggregate.Any(t => t != null))
+                return null;
+
+            var commonDataSource = tradesToAggregate.First(t => t != null);
+            var avgBuyPrice = tradesToAggregate.WeightedAverage(ct => ct.BuyPrice, ct => ct.Amount);
+            var avgSellPrice = tradesToAggregate.WeightedAverage(ct => ct.SellPrice, ct => ct.Amount);
+            var amountSum = tradesToAggregate.Sum(ct => ct.Amount);
+            var roundFeesSum = tradesToAggregate.Sum(ct => ct.ExchangeRoundFee);
+
+            return new ClosedTrade
+                (
+                    accountId: commonDataSource.AccountId,
+                    datetime: tradesToAggregate.Max(t => t.Datetime),
+                    firstCurrency: commonDataSource.FirstCurrency,
+                    secondCurrency: commonDataSource.SecondCurrency,
+                    openPrice: avgBuyPrice,
+                    closePrice: avgSellPrice,
+                    amount: amountSum,
+                    roundFee: roundFeesSum,
                     exchangeFeeCurrency: Currency.USD,
                     traderFee: traderFee
                 );
