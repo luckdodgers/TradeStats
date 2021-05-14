@@ -4,6 +4,6 @@
     {
         public const string AnyCurrencyString = "- All -";
 
-        public const decimal SmallTradeAveragingThreshold = 1;
+        public const decimal SmallTradeAveragingThreshold = 10;
     }
 }

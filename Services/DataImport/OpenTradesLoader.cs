@@ -1,13 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TradeStats.Models.Domain;
-using TradeStats.Services.Interfaces;
-using TradeStats.Models.Common.Comparers;
 using TradeStats.Models.Rules;
+using TradeStats.Services.Interfaces;
 
 namespace TradeStats.Services.DataImport
 {

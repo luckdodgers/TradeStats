@@ -317,19 +317,32 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 }
             }
 
+            var currentBuyTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Buy && !t.IsClosed);
+            var tradesToAggregate = new List<ClosedTrade>(4);
+
             while (true)
             {
-                var buyTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Buy && !t.IsClosed);
+                if (currentBuyTrade == null)
+                    return;
+  
                 var sellTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Sell && !t.IsClosed);
-
-                if (buyTrade != null && sellTrade != null)
+                
+                if (currentBuyTrade.IsClosed)
                 {
-                    var mergeData = buyTrade.MergeWith(sellTrade);
-                    var closedTrade = ClosedTrade.Create(buyTrade, sellTrade, mergeData, _accountCache.CurrentAccount.Fee);
+                    var aggregatedTrade = ClosedTrade.CreateWeightedAverage(tradesToAggregate, _accountCache.CurrentAccount.Fee);
+                    tradesToAggregate.Clear();
+                    closedTrades.Add(aggregatedTrade);
+                    currentBuyTrade = openTrades.FirstOrDefault(t => t.Side == TradeSide.Buy && !t.IsClosed);
+                }
 
-                    closedTrades.Add(closedTrade);
+                if (currentBuyTrade != null && sellTrade != null)
+                {
+                    var mergeData = currentBuyTrade.MergeWith(sellTrade);
+                    var closedTrade = ClosedTrade.Create(currentBuyTrade, sellTrade, mergeData, _accountCache.CurrentAccount.Fee);
 
-                    ProcessIfClosed(buyTrade);
+                    tradesToAggregate.Add(closedTrade);
+
+                    ProcessIfClosed(currentBuyTrade);
                     ProcessIfClosed(sellTrade);
 
                     continue;
@@ -338,8 +351,6 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
                 break;
             }
 
-            AggregateSmallTrades(closedTrades);
-
             _context.TradesContext.OpenTrades.RemoveRange(closedOpenTrades);
             await _context.TradesContext.ClosedTrades.AddRangeAsync(closedTrades);
             await _context.SaveChangesAsync();
@@ -347,33 +358,19 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             OnTradesReload();
         }
 
-        private void AggregateSmallTrades(List<ClosedTrade> closedTrades)
+        private ClosedTrade GetAggregatedTrade(List<ClosedTrade> tradesToAggregate)
         {
-            var smallTrades = closedTrades
-                .Where(t => t.GetOpenSum() <= Constants.SmallTradeAveragingThreshold);
+            if (!tradesToAggregate.Any())
+                throw new ArgumentException($"{nameof(tradesToAggregate)} can't be empty");
 
-            if (!smallTrades.Any())
-                return;
-
-            var smallTradesGroups = smallTrades.GroupBy(t => t.FirstCurrency);
-
-            foreach (var group in smallTradesGroups)
+            // Check if all pairs inside input list are same
+            if (!tradesToAggregate.TrueForAll(t2a => t2a.FirstCurrency == tradesToAggregate.FirstOrDefault().FirstCurrency 
+                && t2a.SecondCurrency == tradesToAggregate.FirstOrDefault().SecondCurrency))
             {
-                var aggregatedClosedTrade = ClosedTrade.CreateWeightedAverage(group.ToList(), _accountCache.CurrentAccount.Fee);
-
-                var nonSmallTrades = closedTrades.Where(t => t.FirstCurrency == group.Key && t.GetOpenSum() > Constants.SmallTradeAveragingThreshold);
-                var minAmountTrade = nonSmallTrades?.FirstOrDefault(t => t.Amount == nonSmallTrades.Min(t => t.Amount));
-
-                if (minAmountTrade != null)
-                {
-                    closedTrades.Add(minAmountTrade.MergeWith(aggregatedClosedTrade, _accountCache.CurrentAccount.Fee));
-                    closedTrades.Remove(minAmountTrade);
-                }
-
-                else closedTrades.Add(aggregatedClosedTrade);
+                throw new ArgumentException($"{nameof(tradesToAggregate)} should contain equal pairs only");
             }
 
-            closedTrades.RemoveAll(t => smallTrades.Contains(t));
+            return ClosedTrade.CreateWeightedAverage(tradesToAggregate, _accountCache.CurrentAccount.Fee);
         }
 
         private void UncheckAll()
