@@ -20,7 +20,8 @@
         <DockPanel>
             <Menu DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="0,5,0,5">
                 <MenuItem Command="{Binding OpenManageAccountsWindowCommand}"  Header="Manage accounts" Height="22"/>
-                <MenuItem Command="{Binding OpenImportWindowCommand}" IsEnabled="{Binding IsAccountImportMenuItemEnabled}" Header="Import history" Height="22"/>
+                <MenuItem Command="{Binding OpenImportWindowCommand}" IsEnabled="{Binding IsHistoryImportMenuItemEnabled}" Header="Import history" Height="22"/>
+                <MenuItem Command="{Binding OpenExportWindowCommand}" IsEnabled="{Binding IsAccountImportMenuItemEnabled}" Header="Import history" Height="22"/>
                 <MenuItem Header="Settings" Height="22"/>
             </Menu>
             <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

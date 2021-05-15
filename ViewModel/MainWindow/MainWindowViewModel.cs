@@ -40,17 +40,26 @@ namespace TradeStats.ViewModel.MainWindow
         public ICommand OpenManageAccountsWindowCommand { get; private set; }
         public ICommand OpenImportWindowCommand { get; private set; }
 
-        #region IsAccountImportMenuItemEnabled
-        private bool _isAccountImportMenuItemEnabled;
-        public bool IsAccountImportMenuItemEnabled
+        #region IsHistoryImportMenuItemEnabled
+        private bool _isHistoryImportMenuItemEnabled;
+        public bool IsHistoryImportMenuItemEnabled
         {
-            get => _isAccountImportMenuItemEnabled;
-            set => SetProperty(ref _isAccountImportMenuItemEnabled, value);
+            get => _isHistoryImportMenuItemEnabled;
+            set => SetProperty(ref _isHistoryImportMenuItemEnabled, value);
         }
         #endregion   
 
+        #region IsHistoryExportMenuItemEnabled
+        private bool _isHistoryExportMenuItemEnabled;
+        public bool IsHistoryExportMenuItemEnabled
+        {
+            get => _isHistoryExportMenuItemEnabled;
+            set => SetProperty(ref _isHistoryExportMenuItemEnabled, value);
+        }
+        #endregion 
+
         public MainWindowViewModel(IUnityContainer container, ICsvImport<OpenTrade> dataSource, IOpenTradesLoader openTradesLoader,
-            ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext)
+            ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext, IMapper mapper)
         {
             _container = container;
             _dataSource = dataSource;
@@ -60,7 +69,7 @@ namespace TradeStats.ViewModel.MainWindow
             _curAccountContext = curAccountContext;
 
             _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
-            _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, configProvider);
+            _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, _configProvider, mapper);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
             _TradesImported += TradesMergeTab.OnTradesReload;
@@ -74,7 +83,7 @@ namespace TradeStats.ViewModel.MainWindow
         {
             TradesMergeTab.OnTradesReload();
 
-            IsAccountImportMenuItemEnabled = _curCachedAccount.CurrentAccount != null;
+            IsHistoryImportMenuItemEnabled = _curCachedAccount.CurrentAccount != null;
         }
 
         private void OpenManageAccountsWindow()

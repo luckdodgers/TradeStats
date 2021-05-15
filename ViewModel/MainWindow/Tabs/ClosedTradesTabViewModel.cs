@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
@@ -22,6 +23,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
     {
         public ObservableCollection<ClosedTradeItemDto> TableClosedTrades { get; } = new ObservableCollection<ClosedTradeItemDto>();
         public IReadOnlyList<string> CurrenciesList { get; set; } = Enum.GetValues<Currency>().GetStringCurrenciesForCombobox();
+
+        public ICommand LoadTradesCommand { get; private set; }
 
         #region SelectedCurrency
         private string _selectedCurrency;
@@ -118,13 +121,15 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private readonly ICurrentAccountTradeContext _context;
         private readonly IConfigurationProvider _configProvider;
+        private readonly IMapper _mapper;
 
-        public ICommand LoadTradesCommand { get; private set; }
+        private List<ClosedTrade> _currentClosedTrades = new List<ClosedTrade>();
 
-        public ClosedTradesTabViewModel(ICurrentAccountTradeContext context, IConfigurationProvider configProvider)
+        public ClosedTradesTabViewModel(ICurrentAccountTradeContext context, IConfigurationProvider configProvider, IMapper mapper)
         {
             _context = context;
             _configProvider = configProvider;
+            _mapper = mapper;
 
             LoadTradesCommand = new DelegateCommand(async () => await LoadTrades());
 
@@ -147,11 +152,12 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             var startDate = StartFromFirstTrade ? DateTime.MinValue : StartDate;
             var endDate = EndOnLastTrade ? DateTime.MaxValue : EndDate;
 
-            var closedTradesList = await closedTrades
+            _currentClosedTrades = await closedTrades
                 .Where(t => t.Datetime >= startDate && t.Datetime <= endDate)
-                .ProjectToListAsync<ClosedTradeItemDto>(_configProvider);
+                .ToListAsync();
 
-            TableClosedTrades.SetWithDataGridSorting(closedTradesList);
+            var closedTradesDtoList = _mapper.Map<IEnumerable<ClosedTrade>, IEnumerable<ClosedTradeItemDto>>(_currentClosedTrades);
+            TableClosedTrades.SetWithDataGridSorting(closedTradesDtoList);
         }
 
         private void UpdateClosedTradesStats(object sender, NotifyCollectionChangedEventArgs e)
@@ -159,9 +165,9 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             if (TableClosedTrades.Count > 0)
             {
                 TradesAmount = TableClosedTrades.Count;
-                AvgProfitPerTrade = Math.Round(TableClosedTrades.Average(t => decimal.Parse(t.ProfitPerTrade)), 2);
-                TraderProfit = TableClosedTrades.Sum(t => decimal.Parse(t.TraderAbsProfit));
-                TradesPureAbsProfit = TableClosedTrades.Sum(t => decimal.Parse(t.PureAbsProfit));
+                AvgProfitPerTrade = Math.Round(_currentClosedTrades.WeightedAverage(t => t.Amount, t => t.GetPercentageProfit()), 2);
+                TraderProfit = Math.Round(_currentClosedTrades.Sum(t => t.GetAbsProfit()));
+                TradesPureAbsProfit = Math.Round(_currentClosedTrades.Sum(t => t.GetPureAbsProfit()));
                 TradesAbsProfit = TraderProfit + TradesPureAbsProfit;
             } 
             
