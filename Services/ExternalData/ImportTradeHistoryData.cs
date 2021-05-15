@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TradeReportsConverter.Models
+﻿namespace TradeReportsConverter.Models
 {
-    public class TradeHistoryData
+    public class ImportTradeHistoryData
     {
         public string Date { get; set; }
         public string Pair { get; set; }

@@ -120,15 +120,13 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         #endregion
 
         private readonly ICurrentAccountTradeContext _context;
-        private readonly IConfigurationProvider _configProvider;
         private readonly IMapper _mapper;
 
-        private List<ClosedTrade> _currentClosedTrades = new List<ClosedTrade>();
+        public IReadOnlyList<ClosedTrade> CurrentClosedTrades { get; private set; } = new List<ClosedTrade>();
 
-        public ClosedTradesTabViewModel(ICurrentAccountTradeContext context, IConfigurationProvider configProvider, IMapper mapper)
+        public ClosedTradesTabViewModel(ICurrentAccountTradeContext context, IMapper mapper)
         {
             _context = context;
-            _configProvider = configProvider;
             _mapper = mapper;
 
             LoadTradesCommand = new DelegateCommand(async () => await LoadTrades());
@@ -152,11 +150,11 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             var startDate = StartFromFirstTrade ? DateTime.MinValue : StartDate;
             var endDate = EndOnLastTrade ? DateTime.MaxValue : EndDate;
 
-            _currentClosedTrades = await closedTrades
+            CurrentClosedTrades = await closedTrades
                 .Where(t => t.Datetime >= startDate && t.Datetime <= endDate)
                 .ToListAsync();
 
-            var closedTradesDtoList = _mapper.Map<IEnumerable<ClosedTrade>, IEnumerable<ClosedTradeItemDto>>(_currentClosedTrades);
+            var closedTradesDtoList = _mapper.Map<IEnumerable<ClosedTrade>, IEnumerable<ClosedTradeItemDto>>(CurrentClosedTrades);
             TableClosedTrades.SetWithDataGridSorting(closedTradesDtoList);
         }
 
@@ -165,9 +163,9 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             if (TableClosedTrades.Count > 0)
             {
                 TradesAmount = TableClosedTrades.Count;
-                AvgProfitPerTrade = Math.Round(_currentClosedTrades.WeightedAverage(t => t.Amount, t => t.GetPercentageProfit()), 2);
-                TraderProfit = Math.Round(_currentClosedTrades.Sum(t => t.GetAbsProfit()));
-                TradesPureAbsProfit = Math.Round(_currentClosedTrades.Sum(t => t.GetPureAbsProfit()));
+                AvgProfitPerTrade = Math.Round(CurrentClosedTrades.WeightedAverage(t => t.Amount, t => t.GetPercentageProfit()), 2);
+                TraderProfit = Math.Round(CurrentClosedTrades.Sum(t => t.GetTraderProfit()));
+                TradesPureAbsProfit = Math.Round(CurrentClosedTrades.Sum(t => t.GetPureAbsProfit()));
                 TradesAbsProfit = TraderProfit + TradesPureAbsProfit;
             } 
             

@@ -2,11 +2,10 @@
 using Microsoft.Win32;
 using Prism.Commands;
 using Prism.Mvvm;
-using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using TradeStats.Extensions;
 using TradeStats.Models.Domain;
@@ -29,7 +28,7 @@ namespace TradeStats.ViewModel.MainWindow
         public ClosedTradesTabViewModel ClosedTradesTab => _closedTradesTab;
 
         private readonly IUnityContainer _container;
-        private readonly ICsvImport<OpenTrade> _dataSource;
+        private readonly IExternalDataManager _dataManager;
         private readonly IOpenTradesLoader _openTradesLoader;
         private readonly ICachedData<Account> _curCachedAccount;
         private readonly IConfigurationProvider _configProvider;
@@ -37,8 +36,11 @@ namespace TradeStats.ViewModel.MainWindow
 
         private event Action _TradesImported;
 
+        #region Commands
         public ICommand OpenManageAccountsWindowCommand { get; private set; }
         public ICommand OpenImportWindowCommand { get; private set; }
+        public ICommand OpenExportWindowCommand { get; private set; }
+        #endregion
 
         #region IsHistoryImportMenuItemEnabled
         private bool _isHistoryImportMenuItemEnabled;
@@ -50,7 +52,7 @@ namespace TradeStats.ViewModel.MainWindow
         #endregion   
 
         #region IsHistoryExportMenuItemEnabled
-        private bool _isHistoryExportMenuItemEnabled;
+        private bool _isHistoryExportMenuItemEnabled = true;
         public bool IsHistoryExportMenuItemEnabled
         {
             get => _isHistoryExportMenuItemEnabled;
@@ -58,25 +60,26 @@ namespace TradeStats.ViewModel.MainWindow
         }
         #endregion 
 
-        public MainWindowViewModel(IUnityContainer container, ICsvImport<OpenTrade> dataSource, IOpenTradesLoader openTradesLoader,
+        public MainWindowViewModel(IUnityContainer container, IExternalDataManager dataManager, IOpenTradesLoader openTradesLoader,
             ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext, IMapper mapper)
         {
             _container = container;
-            _dataSource = dataSource;
+            _dataManager = dataManager;
             _openTradesLoader = openTradesLoader;
             _curCachedAccount = curCachedAccount;
             _configProvider = configProvider;
             _curAccountContext = curAccountContext;
 
             _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
-            _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, _configProvider, mapper);
+            _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, mapper);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;
             _TradesImported += TradesMergeTab.OnTradesReload;
             _TradesImported += ClosedTradesTab.OnTradesReload;
 
             OpenManageAccountsWindowCommand = new DelegateCommand(OpenManageAccountsWindow);
-            OpenImportWindowCommand = new DelegateCommand(async () => await OpenImportWindow());
+            OpenImportWindowCommand = new DelegateCommand(async () => await ImportTradeHistory());
+            OpenExportWindowCommand = new DelegateCommand(async () => await ExportClosedTrades());
         }
 
         public void OnTradesReload()
@@ -94,20 +97,45 @@ namespace TradeStats.ViewModel.MainWindow
             else new ManageAccountsWindow(_container).ShowDialog();
         }
 
-        private async Task OpenImportWindow()
+        private async Task ImportTradeHistory()
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "CSV Files (*.csv)|*.csv";
             openFileDialog.RestoreDirectory = true;          
 
             if (openFileDialog.ShowDialog() == true)
             {
                 var filePath = openFileDialog.FileName;
-                var loadedTrades = await _dataSource.LoadData(filePath);
+                var loadedTrades = await _dataManager.ImportTradesHistory(filePath);
                 
                 await _openTradesLoader.UpdateOpenTrades(loadedTrades);
 
                 _TradesImported?.Invoke();
+            }
+        }
+
+        private async Task ExportClosedTrades()
+        {
+            string ConstructFilename()
+            {
+                var startDate = ClosedTradesTab.StartFromFirstTrade ?
+                    ((IEnumerable<ClosedTrade>)ClosedTradesTab.CurrentClosedTrades).Min(t => t.Datetime).ToShortDateString() : ClosedTradesTab.StartDate.ToShortDateString();
+                var endDate = ClosedTradesTab.EndOnLastTrade ? 
+                    ((IEnumerable<ClosedTrade>)ClosedTradesTab.CurrentClosedTrades).Max(t => t.Datetime).ToShortDateString() : ClosedTradesTab.EndDate.ToShortDateString();
+                var accountName = _curCachedAccount.CurrentAccount.AccountName;
+
+                return $"{accountName}_from_{startDate.Replace('.', '_')}_to_{endDate.Replace('.', '_')}";
+            }
+
+            var saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "CSV Files (*.csv)|*.csv";
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.FileName = ConstructFilename();
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var filePath = saveFileDialog.FileName;
+                await _dataManager.ExportClosedTrades(ClosedTradesTab.CurrentClosedTrades.OrderBy(t => t.Datetime), saveFileDialog.FileName);
             }
         }
     }

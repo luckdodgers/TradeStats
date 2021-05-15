@@ -15,7 +15,7 @@ using TradeStats.Views;
 using Unity;
 using TradeStats.Services.Mappings;
 using AutoMapper;
-using TradeStats.Services.DataImport;
+using TradeStats.Services.ExternalData;
 
 namespace TradeStats.Infastructure
 {
@@ -61,7 +61,8 @@ namespace TradeStats.Infastructure
             container.RegisterType<ManageAccountsViewModel>();
 
             // Data load
-            container.RegisterType<ICsvImport<OpenTrade>, CsvDataImport>();
+            container.RegisterType<ICsv, Csv>();
+            container.RegisterType<IExternalDataManager, ExternalDataManager>();
             container.RegisterType<IOpenTradesLoader, OpenTradesLoader>();
         }
 
