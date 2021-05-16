@@ -16,6 +16,7 @@ using TradeStats.Models.Rules;
 using TradeStats.Services.Interfaces;
 using TradeStats.ViewModel.DTO;
 using TradeStats.ViewModel.Interfaces;
+using Serilog;
 
 namespace TradeStats.ViewModel.MainWindow.Tabs
 {
@@ -137,12 +138,13 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
         private readonly ICachedData<Account> _accountCache;
         private readonly IConfigurationProvider _configProvider;
         private readonly ICurrentAccountTradeContext _context;
+        private readonly ILogger _logger;
 
         private IReadOnlyList<TradeMergeItemDto> _allOpenTradeDtoList = new List<TradeMergeItemDto>();
         private readonly List<TradeMergeItemDto> _selectedTradesToMerge = new();
         private ClosedTrade _closingTrade = null;
 
-        public TradesMergeTabViewModel(ICachedData<Account> accountCache, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext)
+        public TradesMergeTabViewModel(ICachedData<Account> accountCache, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext, ILogger logger)
         {
             _accountCache = accountCache;
             _configProvider = configProvider;
@@ -151,6 +153,7 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
             InitCommands();
 
             SelectedCurrency = CurrenciesList[0];
+            _logger = logger;
         }
 
         private void InitCommands()
@@ -294,6 +297,8 @@ namespace TradeStats.ViewModel.MainWindow.Tabs
 
         private async Task AutoMergeAll()
         {
+            _logger.Error("Clicked!");
+
             var selectedCurrency = Enum.Parse<Currency>(SelectedCurrency);
 
             var openTrades = await _context.CurrentAccountOpenTrades

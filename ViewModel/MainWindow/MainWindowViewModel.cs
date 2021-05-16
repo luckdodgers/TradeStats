@@ -14,6 +14,7 @@ using TradeStats.ViewModel.Interfaces;
 using TradeStats.ViewModel.MainWindow.Tabs;
 using TradeStats.Views;
 using Unity;
+using Serilog;
 
 namespace TradeStats.ViewModel.MainWindow
 {
@@ -61,7 +62,7 @@ namespace TradeStats.ViewModel.MainWindow
         #endregion 
 
         public MainWindowViewModel(IUnityContainer container, IExternalDataManager dataManager, IOpenTradesLoader openTradesLoader,
-            ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext, IMapper mapper)
+            ICachedData<Account> curCachedAccount, IConfigurationProvider configProvider, ICurrentAccountTradeContext curAccountContext, IMapper mapper, ILogger logger)
         {
             _container = container;
             _dataManager = dataManager;
@@ -70,7 +71,7 @@ namespace TradeStats.ViewModel.MainWindow
             _configProvider = configProvider;
             _curAccountContext = curAccountContext;
 
-            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext);
+            _tradesMergeTab = new TradesMergeTabViewModel(_curCachedAccount, _configProvider, _curAccountContext, logger);
             _closedTradesTab = new ClosedTradesTabViewModel(_curAccountContext, mapper);
 
             _curCachedAccount.CacheUpdated += OnTradesReload;

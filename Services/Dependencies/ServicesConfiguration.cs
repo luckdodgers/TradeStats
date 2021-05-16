@@ -16,6 +16,7 @@ using Unity;
 using TradeStats.Services.Mappings;
 using AutoMapper;
 using TradeStats.Services.ExternalData;
+using System.IO;
 
 namespace TradeStats.Infastructure
 {
@@ -24,9 +25,12 @@ namespace TradeStats.Infastructure
         public static void Configure(this IUnityContainer container)
         {
             // Serilog
+            var dtFormat = @"dd-MM-yyyy";
+            var filename = Path.Combine(@"D:", @"Logs", $"trade_stats_log-{DateTime.Now.ToString(dtFormat)}.txt");
             var logger = new LoggerConfiguration()
                     .MinimumLevel.Verbose()
-                    .WriteTo.File($"log-{DateTime.Now}.txt")
+                    .Enrich.FromLogContext()
+                    .WriteTo.File(path: filename, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information, rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
                     .CreateLogger();
 
             container.RegisterInstance(typeof(ILogger), logger);
