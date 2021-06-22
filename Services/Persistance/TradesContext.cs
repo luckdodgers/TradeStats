@@ -20,7 +20,8 @@ namespace TradeStats.Infastructure.Persistance
         }
 
         public TradesContext(DbContextOptions<TradesContext> options) : base(options)
-        {          
+        {
+            Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

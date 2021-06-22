@@ -34,7 +34,7 @@ namespace TradeStats.Services.Mappings
                 .ForMember(dto => dto.PureAbsProfit, dom => dom.MapFrom(src => src.GetPureAbsProfit().TwoDigitsAfterDotRoundUp()));
 
             CreateMap<ClosedTrade, ExportClosedTradesData>()
-                .ForMember(dto => dto.Date, dom => dom.MapFrom(src => src.Datetime))
+                .ForMember(dto => dto.Date, dom => dom.MapFrom(src => src.Datetime.Date))
                 .ForMember(dto => dto.Pair, dom => dom.MapFrom(src => src.FirstCurrency + "/" + src.SecondCurrency))
                 .ForMember(dto => dto.OpenPrice, dom => dom.MapFrom(src => src.BuyPrice.ToTableViewPriceString()))
                 .ForMember(dto => dto.Sum, dom => dom.MapFrom(src => src.GetOpenSum().TwoDigitsAfterDotRoundUp()))
